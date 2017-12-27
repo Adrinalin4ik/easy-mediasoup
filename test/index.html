@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SimpleWebRTC Demo</title>
+    </head>
+    <body>
+        <h1 id="title">Start a room</h1>
+
+        <button id="screenShareButton"></button>
+        <p id="subTitle"></p>
+        <form id="createRoom">
+            <input id="sessionInput"/>
+            <button type="submit">Create it!</button>
+        </form>
+        <div class="videoContainer">
+            <video id="localVideo" style="height: 150px;" oncontextmenu="return false;" autoplay="true"></video>
+            <div id="remoteVideos"></div>
+        </div>
+        <div id="remotes"></div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+        <script src="../dist/easy-mediasoup.bundle.js"></script>
+        <script>
+            // grab the room from the URL
+            var room = location.search && location.search.split('?')[1];
+            var config = {
+                roomId:'ts_19',
+                // media_server_wss:"wss://demo.mediasoup.org:3443"
+                media_server_wss:"wss://192.168.2.226:3443"
+            }
+            var em = new EasyMediasoup.Init(config)
+
+            this.emitter.on("enableWebcam",(client)=>{
+                console.log("CLIENT", client)
+            })
+            var video =  document.getElementById("localVideo")
+            var remotes =  document.getElementById("remoteVideos")
+            var localStream = new MediaStream;
+            
+
+            this.emitter.on("SET_WEBCAM_IN_PROGRESS",(producer)=>{
+                console.log("SET_WEBCAM_IN_PROGRESS", producer)
+                var state = em.store.getState()
+                console.log(state.producers)
+                Object.keys(state.producers).forEach((key)=>{
+                    track = state.producers[key].track;
+                    localStream.addTrack(track);
+                    console.log("TRACKS", track)
+                    
+                })
+                video.srcObject = localStream;
+            })
+
+            this.emitter.on("SET_CONSUMER_TRACK",(consumer)=>{
+                console.log("SET_CONSUMER_TRACK", consumer,consumer.peerName)
+                var state = em.store.getState()
+                
+                peer = state.peers[consumer.peerName]
+                if (!peer.stream){
+                    peer.stream = new MediaStream;
+                }
+                var remoteVideo = document.getElementById(peer.name);
+                if($("#"+peer.name).length == 0 ){
+                    remoteVideo = document.createElement("video");
+                    remoteVideo.id = peer.name
+                    remotes.append(remoteVideo)
+                    remoteVideo.play();
+
+                }
+                peer.stream.addTrack(consumer.track)
+                remoteVideo.srcObject = peer.stream
+            })
+
+            this.emitter.on("consumerRemoved",(consumer)=>{
+                console.log("consumerRemoved", consumer)
+            })
+        </script>
+    </body>
+</html>
