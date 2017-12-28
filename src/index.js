@@ -10,8 +10,8 @@ import {
 import thunk from 'redux-thunk';
 import { createLogger as createReduxLogger } from 'redux-logger';
 import { getDeviceInfo } from 'mediasoup-client';
-import randomString from 'random-string';
-import randomName from 'node-random-name';
+// import randomString from 'random-string';
+// import randomName from 'node-random-name';
 import Logger from './Logger';
 import * as utils from './utils';
 import * as cookiesManager from './cookiesManager';
@@ -73,13 +73,13 @@ export class Init{
 		const turnservers = config.turnservers || []
 
 
-		if (!roomId)
-		{
-			roomId = randomString({ length: 8 }).toLowerCase();
+		// if (!roomId)
+		// {
+		// 	roomId = randomString({ length: 8 }).toLowerCase();
 
-			urlParser.query.roomId = roomId;
-			window.history.pushState('', '', urlParser.toString());
-		}
+		// 	urlParser.query.roomId = roomId;
+		// 	window.history.pushState('', '', urlParser.toString());
+		// }
 
 		// Get the effective/shareable Room URL.
 		const roomUrlParser = new UrlParse(window.location.href, true);
@@ -113,7 +113,7 @@ export class Init{
 		}
 		else
 		{
-			displayName = randomName();
+			displayName = ""
 			displayNameSet = false;
 		}
 

@@ -31,14 +31,6 @@ var _reduxLogger = require('redux-logger');
 
 var _mediasoupClient = require('mediasoup-client');
 
-var _randomString = require('random-string');
-
-var _randomString2 = _interopRequireDefault(_randomString);
-
-var _nodeRandomName = require('node-random-name');
-
-var _nodeRandomName2 = _interopRequireDefault(_nodeRandomName);
-
 var _Logger = require('./Logger');
 
 var _Logger2 = _interopRequireDefault(_Logger);
@@ -111,7 +103,7 @@ var Init = exports.Init = function Init(config) {
 
 	var store = this.store = (0, _redux.createStore)(_reducers2.default, undefined, _redux.applyMiddleware.apply(undefined, reduxMiddlewares));
 	//room settings
-	var peerName = config.peerName || (0, _randomString2.default)({ length: 8 }).toLowerCase();
+	var peerName = config.peerName || randomString({ length: 8 }).toLowerCase();
 	var urlParser = new _urlParse2.default(window.location.href, true);
 	var roomId = config.roomId;
 	var produce = config.produce !== 'false';
@@ -121,12 +113,13 @@ var Init = exports.Init = function Init(config) {
 	var media_server_wss = config.media_server_wss;
 	var turnservers = config.turnservers || [];
 
-	if (!roomId) {
-		roomId = (0, _randomString2.default)({ length: 8 }).toLowerCase();
+	// if (!roomId)
+	// {
+	// 	roomId = randomString({ length: 8 }).toLowerCase();
 
-		urlParser.query.roomId = roomId;
-		window.history.pushState('', '', urlParser.toString());
-	}
+	// 	urlParser.query.roomId = roomId;
+	// 	window.history.pushState('', '', urlParser.toString());
+	// }
 
 	// Get the effective/shareable Room URL.
 	var roomUrlParser = new _urlParse2.default(window.location.href, true);
@@ -176,7 +169,7 @@ var Init = exports.Init = function Init(config) {
 	if (displayName) {
 		displayNameSet = true;
 	} else {
-		displayName = (0, _nodeRandomName2.default)();
+		displayName = "";
 		displayNameSet = false;
 	}
 
@@ -237,6 +230,9 @@ var Init = exports.Init = function Init(config) {
 	// 		global.CLIENT._recvTransport._handler._pc.localDescription.sdp);
 	// };
 };
+// import randomString from 'random-string';
+// import randomName from 'node-random-name';
+
 // import React from 'react';
 // import { render } from 'react-dom';
 // import { Provider } from 'react-redux';
