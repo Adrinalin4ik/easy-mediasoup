@@ -1,38 +1,25 @@
-'use strict';
+// import jsCookie from 'js-cookie';
 
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-exports.getUser = getUser;
-exports.setUser = setUser;
-exports.getDevices = getDevices;
-exports.setDevices = setDevices;
+// const USER_COOKIE = 'mediasoup-demo.user';
+// const DEVICES_COOKIE = 'mediasoup-demo.devices';
 
-var _jsCookie = require('js-cookie');
+// export function getUser()
+// {
+// 	return jsCookie.getJSON(USER_COOKIE);
+// }
 
-var _jsCookie2 = _interopRequireDefault(_jsCookie);
+// export function setUser({ displayName })
+// {
+// 	jsCookie.set(USER_COOKIE, { displayName });
+// }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+// export function getDevices()
+// {
+// 	return jsCookie.getJSON(DEVICES_COOKIE);
+// }
 
-var USER_COOKIE = 'mediasoup-demo.user';
-var DEVICES_COOKIE = 'mediasoup-demo.devices';
-
-function getUser() {
-	return _jsCookie2.default.getJSON(USER_COOKIE);
-}
-
-function setUser(_ref) {
-	var displayName = _ref.displayName;
-
-	_jsCookie2.default.set(USER_COOKIE, { displayName: displayName });
-}
-
-function getDevices() {
-	return _jsCookie2.default.getJSON(DEVICES_COOKIE);
-}
-
-function setDevices(_ref2) {
-	var webcamEnabled = _ref2.webcamEnabled;
-
-	_jsCookie2.default.set(DEVICES_COOKIE, { webcamEnabled: webcamEnabled });
-}
+// export function setDevices({ webcamEnabled })
+// {
+// 	jsCookie.set(DEVICES_COOKIE, { webcamEnabled });
+// }
+"use strict";

@@ -2,7 +2,7 @@ import protooClient from 'protoo-client';
 import * as mediasoupClient from 'mediasoup-client';
 import Logger from './Logger';
 import { getProtooUrl } from './urlFactory';
-import * as cookiesManager from './cookiesManager';
+// import * as cookiesManager from './cookiesManager';
 import * as requestActions from './redux/requestActions';
 import * as stateActions from './redux/stateActions';
 
@@ -112,7 +112,7 @@ export default class RoomClient
 		logger.debug('changeDisplayName() [displayName:"%s"]', displayName);
 
 		// Store in cookie.
-		cookiesManager.setUser({ displayName });
+		// cookiesManager.setUser({ displayName });
 
 		return this._protoo.send('change-display-name', { displayName })
 			.then(() =>
@@ -160,7 +160,7 @@ export default class RoomClient
 		logger.debug('enableWebcam()');
 
 		// Store in cookie.
-		cookiesManager.setDevices({ webcamEnabled: true });
+		// cookiesManager.setDevices({ webcamEnabled: true });
 
 		this._dispatch(
 			stateActions.setWebcamInProgress(true));
@@ -193,7 +193,7 @@ export default class RoomClient
 		logger.debug('disableWebcam()');
 
 		// Store in cookie.
-		cookiesManager.setDevices({ webcamEnabled: false });
+		// cookiesManager.setDevices({ webcamEnabled: false });
 
 		this._dispatch(
 			stateActions.setWebcamInProgress(true));
@@ -696,9 +696,9 @@ export default class RoomClient
 						if (!this._room.canSend('video'))
 							return;
 
-						const devicesCookie = cookiesManager.getDevices();
+						// const devicesCookie = cookiesManager.getDevices();
 
-						if (!devicesCookie || devicesCookie.webcamEnabled)
+						// if (!devicesCookie || devicesCookie.webcamEnabled)
 							this.enableWebcam();
 					});
 			})

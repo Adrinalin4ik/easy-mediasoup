@@ -14,7 +14,7 @@ import { getDeviceInfo } from 'mediasoup-client';
 // import randomName from 'node-random-name';
 import Logger from './Logger';
 import * as utils from './utils';
-import * as cookiesManager from './cookiesManager';
+// import * as cookiesManager from './cookiesManager';
 import * as requestActions from './redux/requestActions';
 import * as stateActions from './redux/stateActions';
 import reducers from './redux/reducers';
@@ -101,11 +101,11 @@ export class Init{
 		const roomUrl = roomUrlParser.toString();
 
 		// Get displayName from cookie (if not already given as param).
-		const userCookie = cookiesManager.getUser() || {};
+		// const userCookie = cookiesManager.getUser() || {};
 		let displayNameSet;
 
-		if (!displayName)
-			displayName = userCookie.displayName;
+		// if (!displayName)
+		// 	displayName = userCookie.displayName;
 
 		if (displayName)
 		{

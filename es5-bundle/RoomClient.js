@@ -46,10 +46,6 @@ var _Logger2 = _interopRequireDefault(_Logger);
 
 var _urlFactory = require('./urlFactory');
 
-var _cookiesManager = require('./cookiesManager');
-
-var cookiesManager = _interopRequireWildcard(_cookiesManager);
-
 var _requestActions = require('./redux/requestActions');
 
 var requestActions = _interopRequireWildcard(_requestActions);
@@ -62,6 +58,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// import * as cookiesManager from './cookiesManager';
 var logger = new _Logger2.default('RoomClient');
 
 var ROOM_OPTIONS = {
@@ -177,7 +174,7 @@ var RoomClient = function () {
 			logger.debug('changeDisplayName() [displayName:"%s"]', displayName);
 
 			// Store in cookie.
-			cookiesManager.setUser({ displayName: displayName });
+			// cookiesManager.setUser({ displayName });
 
 			return this._protoo.send('change-display-name', { displayName: displayName }).then(function () {
 				_this2._dispatch(stateActions.setDisplayName(displayName));
@@ -220,7 +217,7 @@ var RoomClient = function () {
 			logger.debug('enableWebcam()');
 
 			// Store in cookie.
-			cookiesManager.setDevices({ webcamEnabled: true });
+			// cookiesManager.setDevices({ webcamEnabled: true });
 
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
@@ -244,7 +241,7 @@ var RoomClient = function () {
 			logger.debug('disableWebcam()');
 
 			// Store in cookie.
-			cookiesManager.setDevices({ webcamEnabled: false });
+			// cookiesManager.setDevices({ webcamEnabled: false });
 
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
@@ -727,9 +724,10 @@ var RoomClient = function () {
 				.then(function () {
 					if (!_this11._room.canSend('video')) return;
 
-					var devicesCookie = cookiesManager.getDevices();
+					// const devicesCookie = cookiesManager.getDevices();
 
-					if (!devicesCookie || devicesCookie.webcamEnabled) _this11.enableWebcam();
+					// if (!devicesCookie || devicesCookie.webcamEnabled)
+					_this11.enableWebcam();
 				});
 			}).then(function () {
 				_this11._dispatch(stateActions.setRoomState('connected'));

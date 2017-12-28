@@ -13,7 +13,7 @@
     "pretest": "npm run build",
     "test": "mocha --compilers js:babel-core/register ./src/**/*.test.js",
     "test:single": "mocha --compilers js:babel-core/register",
-    "bundle_build": "npm run build && node build.js",
+    "bundle_build": "npm run clean && npm run build && node build.js",
     "test-page": "echo \"open https://0.0.0.0:8443/test/\" && http-server",
     "lint": "jshint .",
     "validate": "npm ls"

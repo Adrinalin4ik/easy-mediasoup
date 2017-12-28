@@ -39,10 +39,6 @@ var _utils = require('./utils');
 
 var utils = _interopRequireWildcard(_utils);
 
-var _cookiesManager = require('./cookiesManager');
-
-var cookiesManager = _interopRequireWildcard(_cookiesManager);
-
 var _requestActions = require('./redux/requestActions');
 
 var requestActions = _interopRequireWildcard(_requestActions);
@@ -73,7 +69,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // import Room from './components/Room';
 
-// import domready from 'domready';
+// import * as cookiesManager from './cookiesManager';
+
+// import randomString from 'random-string';
+// import randomName from 'node-random-name';
+
+// import React from 'react';
+// import { render } from 'react-dom';
+// import { Provider } from 'react-redux';
 var Init = exports.Init = function Init(config) {
 	var _this = this;
 
@@ -161,10 +164,11 @@ var Init = exports.Init = function Init(config) {
 	var roomUrl = roomUrlParser.toString();
 
 	// Get displayName from cookie (if not already given as param).
-	var userCookie = cookiesManager.getUser() || {};
+	// const userCookie = cookiesManager.getUser() || {};
 	var displayNameSet = void 0;
 
-	if (!displayName) displayName = userCookie.displayName;
+	// if (!displayName)
+	// 	displayName = userCookie.displayName;
 
 	if (displayName) {
 		displayNameSet = true;
@@ -229,10 +233,4 @@ var Init = exports.Init = function Init(config) {
 	// 	logger.debug(
 	// 		global.CLIENT._recvTransport._handler._pc.localDescription.sdp);
 	// };
-};
-// import randomString from 'random-string';
-// import randomName from 'node-random-name';
-
-// import React from 'react';
-// import { render } from 'react-dom';
-// import { Provider } from 'react-redux';
+}; // import domready from 'domready';
