@@ -124,6 +124,7 @@ var Init = exports.Init = function Init(config) {
 		var isSipEndpoint = config.sipEndpoint === 'true';
 		var useSimulcast = config.simulcast !== 'false';
 		var media_server_wss = config.media_server_wss;
+		var turnservers = config.turnservers || [];
 		if (!roomId) {
 			roomId = (0, _randomString2.default)({ length: 8 }).toLowerCase();
 
@@ -200,7 +201,7 @@ var Init = exports.Init = function Init(config) {
 		store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
 
 		// NOTE: I don't like this.
-		store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce }));
+		store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers }));
 
 		// function select(state) {
 		//   return state.some.deep.property

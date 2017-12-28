@@ -76,6 +76,7 @@ export class Init{
 			const isSipEndpoint = config.sipEndpoint === 'true';
 			const useSimulcast = config.simulcast !== 'false';
 			const media_server_wss = config.media_server_wss
+			const turnservers = config.turnservers || []
 			if (!roomId)
 			{
 				roomId = randomString({ length: 8 }).toLowerCase();
@@ -142,7 +143,7 @@ export class Init{
 			// NOTE: I don't like this.
 			store.dispatch(
 				requestActions.joinRoom(
-					{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce }));
+					{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers }));
 
 			// function select(state) {
 			//   return state.some.deep.property

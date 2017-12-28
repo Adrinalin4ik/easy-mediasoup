@@ -19,7 +19,6 @@ exports.default = function (_ref) {
 			switch (action.type) {
 				case 'JOIN_ROOM':
 					{
-						console.log(action.payload);
 						var _action$payload = action.payload,
 						    media_server_wss = _action$payload.media_server_wss,
 						    roomId = _action$payload.roomId,
@@ -27,7 +26,8 @@ exports.default = function (_ref) {
 						    displayName = _action$payload.displayName,
 						    device = _action$payload.device,
 						    useSimulcast = _action$payload.useSimulcast,
-						    produce = _action$payload.produce;
+						    produce = _action$payload.produce,
+						    turnservers = _action$payload.turnservers;
 
 
 						client = new _RoomClient2.default({
@@ -39,7 +39,8 @@ exports.default = function (_ref) {
 							useSimulcast: useSimulcast,
 							produce: produce,
 							dispatch: dispatch,
-							getState: getState
+							getState: getState,
+							turnservers: turnservers
 						});
 
 						// TODO: TMP

@@ -25,7 +25,14 @@
             var config = {
                 roomId:'ts_19',
                 // media_server_wss:"wss://demo.mediasoup.org:3443"
-                media_server_wss:"wss://192.168.2.226:3443"
+                media_server_wss:"wss://mediasoup.oblakogroup.ru",
+                turnservers:[
+                    {
+                      urls: ["turn:turn.oblakogroup.ru", "turn:turn.oblakogroup.ru?transport=udp", "turn:turn.oblakogroup.ru?transport=tcp"],
+                      username: 'oblakogroup1',
+                      credential: 'Ob1ako'
+                    }
+                ]
             }
             var em = new EasyMediasoup.Init(config)
 

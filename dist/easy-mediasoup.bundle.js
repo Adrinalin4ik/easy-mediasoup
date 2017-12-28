@@ -153,7 +153,8 @@ var RoomClient = function () {
 		    useSimulcast = _ref.useSimulcast,
 		    produce = _ref.produce,
 		    dispatch = _ref.dispatch,
-		    getState = _ref.getState;
+		    getState = _ref.getState,
+		    turnservers = _ref.turnservers;
 		(0, _classCallCheck3.default)(this, RoomClient);
 
 		logger.debug('constructor() [roomId:"%s", peerName:"%s", displayName:"%s", device:%s]', roomId, peerName, displayName, device.flag);
@@ -180,7 +181,8 @@ var RoomClient = function () {
 
 		// protoo-client Peer instance.
 		this._protoo = new _protooClient2.default.Peer(protooTransport);
-
+		// set turn servers
+		ROOM_OPTIONS.turnServers = turnservers;
 		// mediasoup-client Room instance.
 		this._room = new mediasoupClient.Room(ROOM_OPTIONS);
 
@@ -1380,6 +1382,7 @@ var Init = exports.Init = function Init(config) {
 		var isSipEndpoint = config.sipEndpoint === 'true';
 		var useSimulcast = config.simulcast !== 'false';
 		var media_server_wss = config.media_server_wss;
+		var turnservers = config.turnservers || [];
 		if (!roomId) {
 			roomId = (0, _randomString2.default)({ length: 8 }).toLowerCase();
 
@@ -1456,7 +1459,7 @@ var Init = exports.Init = function Init(config) {
 		store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
 
 		// NOTE: I don't like this.
-		store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce }));
+		store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers }));
 
 		// function select(state) {
 		//   return state.some.deep.property
@@ -2129,11 +2132,12 @@ var joinRoom = exports.joinRoom = function joinRoom(_ref) {
 	    displayName = _ref.displayName,
 	    device = _ref.device,
 	    useSimulcast = _ref.useSimulcast,
-	    produce = _ref.produce;
+	    produce = _ref.produce,
+	    turnservers = _ref.turnservers;
 
 	return {
 		type: 'JOIN_ROOM',
-		payload: { media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce }
+		payload: { media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers }
 	};
 };
 
@@ -2254,7 +2258,6 @@ exports.default = function (_ref) {
 			switch (action.type) {
 				case 'JOIN_ROOM':
 					{
-						console.log(action.payload);
 						var _action$payload = action.payload,
 						    media_server_wss = _action$payload.media_server_wss,
 						    roomId = _action$payload.roomId,
@@ -2262,7 +2265,8 @@ exports.default = function (_ref) {
 						    displayName = _action$payload.displayName,
 						    device = _action$payload.device,
 						    useSimulcast = _action$payload.useSimulcast,
-						    produce = _action$payload.produce;
+						    produce = _action$payload.produce,
+						    turnservers = _action$payload.turnservers;
 
 
 						client = new _RoomClient2.default({
@@ -2274,7 +2278,8 @@ exports.default = function (_ref) {
 							useSimulcast: useSimulcast,
 							produce: produce,
 							dispatch: dispatch,
-							getState: getState
+							getState: getState,
+							turnservers: turnservers
 						});
 
 						// TODO: TMP

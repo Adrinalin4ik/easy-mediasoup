@@ -87,7 +87,8 @@ var RoomClient = function () {
 		    useSimulcast = _ref.useSimulcast,
 		    produce = _ref.produce,
 		    dispatch = _ref.dispatch,
-		    getState = _ref.getState;
+		    getState = _ref.getState,
+		    turnservers = _ref.turnservers;
 		(0, _classCallCheck3.default)(this, RoomClient);
 
 		logger.debug('constructor() [roomId:"%s", peerName:"%s", displayName:"%s", device:%s]', roomId, peerName, displayName, device.flag);
@@ -114,7 +115,8 @@ var RoomClient = function () {
 
 		// protoo-client Peer instance.
 		this._protoo = new _protooClient2.default.Peer(protooTransport);
-
+		// set turn servers
+		ROOM_OPTIONS.turnServers = turnservers;
 		// mediasoup-client Room instance.
 		this._room = new mediasoupClient.Room(ROOM_OPTIONS);
 

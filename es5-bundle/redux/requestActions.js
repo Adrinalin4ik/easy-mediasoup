@@ -24,11 +24,12 @@ var joinRoom = exports.joinRoom = function joinRoom(_ref) {
 	    displayName = _ref.displayName,
 	    device = _ref.device,
 	    useSimulcast = _ref.useSimulcast,
-	    produce = _ref.produce;
+	    produce = _ref.produce,
+	    turnservers = _ref.turnservers;
 
 	return {
 		type: 'JOIN_ROOM',
-		payload: { media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce }
+		payload: { media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers }
 	};
 };
 

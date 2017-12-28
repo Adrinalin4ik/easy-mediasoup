@@ -27,7 +27,7 @@ const VIDEO_CONSTRAINS =
 export default class RoomClient
 {
 	constructor(
-		{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, dispatch, getState })
+		{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, dispatch, getState, turnservers })
 	{
 		logger.debug(
 			'constructor() [roomId:"%s", peerName:"%s", displayName:"%s", device:%s]',
@@ -55,7 +55,8 @@ export default class RoomClient
 
 		// protoo-client Peer instance.
 		this._protoo = new protooClient.Peer(protooTransport);
-
+		// set turn servers
+		ROOM_OPTIONS.turnServers = turnservers
 		// mediasoup-client Room instance.
 		this._room = new mediasoupClient.Room(ROOM_OPTIONS);
 
