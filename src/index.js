@@ -28,17 +28,20 @@ export class Init{
 		global.emitter = this.emitter = new emitter.default()
 		this.roomClientMiddleware = roomClientMiddleware
 		const logger = new Logger();
+
+		this.emitter.on("joinRoom",(client)=>{
+	        this.client = client
+	    })
+
+	    //settingup redux
 		const reduxMiddlewares =
 		[
 			thunk,
 			roomClientMiddleware
 		];
 
-		this.emitter.on("joinRoom",(client)=>{
-	        this.client = client
-	        console.log("CLIENT", client)
-	    })
 		
+
 		if (process.env.NODE_ENV === 'development')
 		{
 			const reduxLogger = createReduxLogger(
@@ -58,128 +61,85 @@ export class Init{
 			undefined,
 			applyReduxMiddleware(...reduxMiddlewares)
 		);
+		//room settings
+		const peerName = config.peerName || randomString({ length: 8 }).toLowerCase();
+		const urlParser = new UrlParse(window.location.href, true);
+		let roomId = config.roomId;
+		const produce = config.produce !== 'false';
+		let displayName = config.displayName;
+		const isSipEndpoint = config.sipEndpoint === 'true';
+		const useSimulcast = config.simulcast !== 'false';
+		const media_server_wss = config.media_server_wss
+		const turnservers = config.turnservers || []
 
-		run(config)
-		// domready(() =>
-		// {
-		// 	logger.debug('DOM ready');
 
-		// 	// Load stuff and run
-		// 	utils.initialize()
-		// 		.then(run);
-		// });
-
-		function run(config)
+		if (!roomId)
 		{
-			logger.debug('run() [environment:%s]', process.env.NODE_ENV);
+			roomId = randomString({ length: 8 }).toLowerCase();
 
-			const peerName = config.peerName || randomString({ length: 8 }).toLowerCase();
-			const urlParser = new UrlParse(window.location.href, true);
-			let roomId = config.roomId;
-			const produce = config.produce !== 'false';
-			let displayName = config.displayName;
-			const isSipEndpoint = config.sipEndpoint === 'true';
-			const useSimulcast = config.simulcast !== 'false';
-			const media_server_wss = config.media_server_wss
-			const turnservers = config.turnservers || []
-			if (!roomId)
-			{
-				roomId = randomString({ length: 8 }).toLowerCase();
-
-				urlParser.query.roomId = roomId;
-				window.history.pushState('', '', urlParser.toString());
-			}
-
-			// Get the effective/shareable Room URL.
-			const roomUrlParser = new UrlParse(window.location.href, true);
-
-			for (const key of Object.keys(roomUrlParser.query))
-			{
-				// Don't keep some custom params.
-				switch (key)
-				{
-					case 'roomId':
-					case 'simulcast':
-						break;
-					default:
-						delete roomUrlParser.query[key];
-				}
-			}
-			delete roomUrlParser.hash;
-
-			const roomUrl = roomUrlParser.toString();
-
-			// Get displayName from cookie (if not already given as param).
-			const userCookie = cookiesManager.getUser() || {};
-			let displayNameSet;
-
-			if (!displayName)
-				displayName = userCookie.displayName;
-
-			if (displayName)
-			{
-				displayNameSet = true;
-			}
-			else
-			{
-				displayName = randomName();
-				displayNameSet = false;
-			}
-
-			// Get current device.
-			const device = getDeviceInfo();
-
-			// If a SIP endpoint mangle device info.
-			if (isSipEndpoint)
-			{
-				device.flag = 'sipendpoint';
-				device.name = 'SIP Endpoint';
-				device.version = undefined;
-			}
-
-			// NOTE: I don't like this.
-			store.dispatch(
-				stateActions.setRoomUrl(roomUrl));
-
-			// NOTE: I don't like this.
-			store.dispatch(
-				stateActions.setMe({ peerName, displayName, displayNameSet, device }));
-
-			// NOTE: I don't like this.
-			store.dispatch(
-				requestActions.joinRoom(
-					{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers }));
-
-			// function select(state) {
-			//   return state.some.deep.property
-			// }
-
-			// let currentValue
-			// function handleChange() {
-			//   let previousValue = currentValue
-			//   currentValue = store.getState()//select(store.getState())
-
-			//   if (previousValue !== currentValue) {
-			//     console.log(
-			//       'Some deep nested property changed from',
-			//       previousValue,
-			//       'to',
-			//       currentValue
-			//     )
-			//     console.log(_.difference(previousValue,currentValue))
-			//   }
-			// }
-
-			// store.subscribe(handleChange)
-
-
-			// render(
-			// 	<Provider store={store}>
-			// 		<Room />
-			// 	</Provider>,
-			// 	document.getElementById('mediasoup-demo-app-container')
-			// );
+			urlParser.query.roomId = roomId;
+			window.history.pushState('', '', urlParser.toString());
 		}
+
+		// Get the effective/shareable Room URL.
+		const roomUrlParser = new UrlParse(window.location.href, true);
+
+		for (const key of Object.keys(roomUrlParser.query))
+		{
+			// Don't keep some custom params.
+			switch (key)
+			{
+				case 'roomId':
+				case 'simulcast':
+					break;
+				default:
+					delete roomUrlParser.query[key];
+			}
+		}
+		delete roomUrlParser.hash;
+
+		const roomUrl = roomUrlParser.toString();
+
+		// Get displayName from cookie (if not already given as param).
+		const userCookie = cookiesManager.getUser() || {};
+		let displayNameSet;
+
+		if (!displayName)
+			displayName = userCookie.displayName;
+
+		if (displayName)
+		{
+			displayNameSet = true;
+		}
+		else
+		{
+			displayName = randomName();
+			displayNameSet = false;
+		}
+
+		// Get current device.
+		const device = getDeviceInfo();
+
+		// If a SIP endpoint mangle device info.
+		if (isSipEndpoint)
+		{
+			device.flag = 'sipendpoint';
+			device.name = 'SIP Endpoint';
+			device.version = undefined;
+		}
+
+		// NOTE: I don't like this.
+		store.dispatch(
+			stateActions.setRoomUrl(roomUrl));
+
+		// NOTE: I don't like this.
+		store.dispatch(
+			stateActions.setMe({ peerName, displayName, displayNameSet, device }));
+
+		// NOTE: I don't like this.
+		store.dispatch(
+			requestActions.joinRoom(
+				{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers }));
 
 		// TODO: Debugging stuff.
 

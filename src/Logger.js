@@ -1,6 +1,6 @@
 import debug from 'debug';
 
-const APP_NAME = 'mediasoup-demo';
+const APP_NAME = 'mediasoup';
 
 export default class Logger
 {
@@ -18,13 +18,16 @@ export default class Logger
 			this._warn = debug(`${APP_NAME}:WARN`);
 			this._error = debug(`${APP_NAME}:ERROR`);
 		}
-
-		/* eslint-disable no-console */
-		// this._debug.log = console.info.bind(console);
-		// this._warn.log = console.warn.bind(console);
-		// this._error.log = console.error.bind(console);
-		/* eslint-enable no-console */
-		this._debug.enabled = true
+		this._debug.enabled = false
+		// if (global.debug_mode){
+		// 	this._debug.enabled = true
+		// }else{
+		// 	/* eslint-disable no-console */
+		// 	this._debug.log = console.info.bind(console);
+		// 	this._warn.log = console.warn.bind(console);
+		// 	this._error.log = console.error.bind(console);
+		// 	/* eslint-enable no-console */
+		// }	
 	}
 
 	get debug()

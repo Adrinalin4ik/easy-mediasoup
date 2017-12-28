@@ -18,7 +18,7 @@ var _debug2 = _interopRequireDefault(_debug);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var APP_NAME = 'mediasoup-demo';
+var APP_NAME = 'mediasoup';
 
 var Logger = function () {
 	function Logger(prefix) {
@@ -33,13 +33,16 @@ var Logger = function () {
 			this._warn = (0, _debug2.default)(APP_NAME + ':WARN');
 			this._error = (0, _debug2.default)(APP_NAME + ':ERROR');
 		}
-
-		/* eslint-disable no-console */
-		// this._debug.log = console.info.bind(console);
-		// this._warn.log = console.warn.bind(console);
-		// this._error.log = console.error.bind(console);
-		/* eslint-enable no-console */
-		this._debug.enabled = true;
+		this._debug.enabled = false;
+		// if (global.debug_mode){
+		// 	this._debug.enabled = true
+		// }else{
+		// 	/* eslint-disable no-console */
+		// 	this._debug.log = console.info.bind(console);
+		// 	this._warn.log = console.warn.bind(console);
+		// 	this._error.log = console.error.bind(console);
+		// 	/* eslint-enable no-console */
+		// }	
 	}
 
 	(0, _createClass3.default)(Logger, [{
