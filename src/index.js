@@ -34,6 +34,11 @@ export class Init{
 			roomClientMiddleware
 		];
 
+		this.emitter.on("joinRoom",(client)=>{
+	        this.client = client
+	        console.log("CLIENT", client)
+	    })
+		
 		if (process.env.NODE_ENV === 'development')
 		{
 			const reduxLogger = createReduxLogger(

@@ -45,7 +45,6 @@ exports.default = function (_ref) {
 
 						// TODO: TMP
 						global.CLIENT = client;
-						console.log("HERE");
 						global.emitter.emit("joinRoom", client);
 						break;
 					}

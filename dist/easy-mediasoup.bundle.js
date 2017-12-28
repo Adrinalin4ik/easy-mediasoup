@@ -1341,12 +1341,19 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // import domready from 'domready';
 var Init = exports.Init = function Init(config) {
+	var _this = this;
+
 	(0, _classCallCheck3.default)(this, Init);
 
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
 	var reduxMiddlewares = [_reduxThunk2.default, _roomClientMiddleware2.default];
+
+	this.emitter.on("joinRoom", function (client) {
+		_this.client = client;
+		console.log("CLIENT", client);
+	});
 
 	if (process.env.NODE_ENV === 'development') {
 		var reduxLogger = (0, _reduxLogger.createLogger)({
@@ -2284,7 +2291,6 @@ exports.default = function (_ref) {
 
 						// TODO: TMP
 						global.CLIENT = client;
-						console.log("HERE");
 						global.emitter.emit("joinRoom", client);
 						break;
 					}

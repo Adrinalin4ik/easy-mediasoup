@@ -36,9 +36,11 @@
             }
             var em = new EasyMediasoup.Init(config)
 
-            this.emitter.on("enableWebcam",(client)=>{
+            this.emitter.on("joinRoom",(client)=>{
+                this.client = client
                 console.log("CLIENT", client)
             })
+
             var video =  document.getElementById("localVideo")
             var remotes =  document.getElementById("remoteVideos")
             var localStream = new MediaStream;

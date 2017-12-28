@@ -59,7 +59,7 @@ export default class RoomClient
 		ROOM_OPTIONS.turnServers = turnservers
 		// mediasoup-client Room instance.
 		this._room = new mediasoupClient.Room(ROOM_OPTIONS);
-
+		
 		// Transport for sending.
 		this._sendTransport = null;
 
