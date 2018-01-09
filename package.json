@@ -1,8 +1,8 @@
 {
   "name": "easy-mediasoup",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Mediasoup overhead",
-  "main": "./dist/easy-mediasoup.js",
+  "main": "./build/main.bundle.js",
   "scripts": {
     "start": "npm run dev",
     "dev": "npm test -- -w",
