@@ -19670,31 +19670,37 @@ module.exports = require('../package.json').version;
 
 },{"../package.json":238}],238:[function(require,module,exports){
 module.exports={
-  "_from": "websocket@^1.0.25",
+  "_args": [
+    [
+      "websocket@1.0.25",
+      "/home/alex/Desktop/JS/easy-mediasoup"
+    ]
+  ],
+  "_from": "websocket@1.0.25",
   "_id": "websocket@1.0.25",
   "_inBundle": false,
   "_integrity": "sha512-M58njvi6ZxVb5k7kpnHh2BvNKuBWiwIYvsToErBzWhvBZYwlEiLcyLrG41T1jRcrY9ettqPYEqduLI7ul54CVQ==",
   "_location": "/websocket",
+  "_optional": true,
   "_phantomChildren": {
     "ms": "2.0.0"
   },
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "websocket@^1.0.25",
+    "raw": "websocket@1.0.25",
     "name": "websocket",
     "escapedName": "websocket",
-    "rawSpec": "^1.0.25",
+    "rawSpec": "1.0.25",
     "saveSpec": null,
-    "fetchSpec": "^1.0.25"
+    "fetchSpec": "1.0.25"
   },
   "_requiredBy": [
     "/protoo-client"
   ],
   "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.25.tgz",
-  "_shasum": "998ec790f0a3eacb8b08b50a4350026692a11958",
-  "_spec": "websocket@^1.0.25",
-  "_where": "/home/alex/Desktop/JS/easy-mediasoup/node_modules/protoo-client",
+  "_spec": "1.0.25",
+  "_where": "/home/alex/Desktop/JS/easy-mediasoup",
   "author": {
     "name": "Brian McKelvey",
     "email": "brian@worlize.com",
@@ -19704,7 +19710,6 @@ module.exports={
   "bugs": {
     "url": "https://github.com/theturtle32/WebSocket-Node/issues"
   },
-  "bundleDependencies": false,
   "config": {
     "verbose": false
   },
@@ -19721,7 +19726,6 @@ module.exports={
     "typedarray-to-buffer": "^3.1.2",
     "yaeti": "^0.0.6"
   },
-  "deprecated": false,
   "description": "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
   "devDependencies": {
     "buffer-equal": "^1.0.0",

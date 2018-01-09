@@ -1,19 +1,20 @@
 {
   "name": "easy-mediasoup",
-  "version": "1.0.3",
+  "version": "1.0.7",
   "description": "Mediasoup overhead",
-  "main": "./build/main.bundle.js",
+  "main": "./dist/easy-mediasoup.bundle.min.js",
   "scripts": {
     "start": "npm run dev",
     "dev": "npm test -- -w",
     "init": "mkdir es5-bundle",
     "clean": "rm -rf es5-bundle",
     "prebuild": "npm run clean && npm run init",
-    "build": "babel ./src -d ./es5-bundle --ignore test.js --presets babel-preset-es2015",
+    "babel-build": "babel ./src -d ./es5-bundle --ignore test.js --presets babel-preset-es2015",
+    "build": "npm run babel-build && webpack",
     "pretest": "npm run build",
     "test": "mocha --compilers js:babel-core/register ./src/**/*.test.js",
     "test:single": "mocha --compilers js:babel-core/register",
-    "bundle_build": "npm run clean && npm run build && node build.js",
+    "bundle_build": "npm run clean && npm run babel-build  --production=true && node build.js --production=true",
     "test-page": "echo \"open https://0.0.0.0:8443/test/\" && http-server",
     "lint": "jshint .",
     "validate": "npm ls"
@@ -72,8 +73,7 @@
     "selenium-webdriver": "^3.0.1",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.0",
-    "uglify-js": "^2.7.3",
-    "webpack": "^3.10.0"
+    "uglify-js": "^2.7.3"
   },
   "files": [
     "dist"
