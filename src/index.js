@@ -1,5 +1,5 @@
 // import domready from 'domready';
-import UrlParse from 'url-parse';
+// import UrlParse from 'url-parse';
 // import React from 'react';
 // import { render } from 'react-dom';
 // import { Provider } from 'react-redux';
@@ -19,7 +19,6 @@ import * as requestActions from './redux/requestActions';
 import * as stateActions from './redux/stateActions';
 import reducers from './redux/reducers';
 import roomClientMiddleware from './redux/roomClientMiddleware';
-import * as _ from "lodash"
 import * as emitter from  "wildemitter"
 // import Room from './components/Room';
 
@@ -63,7 +62,7 @@ export class Init{
 		);
 		//room settings
 		const peerName = config.peerName
-		const urlParser = new UrlParse(window.location.href, true);
+		// const urlParser = new UrlParse(window.location.href, true);
 		let roomId = config.roomId;
 		const produce = config.produce || true;
 		let displayName = config.displayName;
@@ -82,23 +81,23 @@ export class Init{
 		// }
 
 		// Get the effective/shareable Room URL.
-		const roomUrlParser = new UrlParse(window.location.href, true);
+		// const roomUrlParser = new UrlParse(window.location.href, true);
 
-		for (const key of Object.keys(roomUrlParser.query))
-		{
-			// Don't keep some custom params.
-			switch (key)
-			{
-				case 'roomId':
-				case 'simulcast':
-					break;
-				default:
-					delete roomUrlParser.query[key];
-			}
-		}
-		delete roomUrlParser.hash;
+		// for (const key of Object.keys(roomUrlParser.query))
+		// {
+		// 	// Don't keep some custom params.
+		// 	switch (key)
+		// 	{
+		// 		case 'roomId':
+		// 		case 'simulcast':
+		// 			break;
+		// 		default:
+		// 			delete roomUrlParser.query[key];
+		// 	}
+		// }
+		// delete roomUrlParser.hash;
 
-		const roomUrl = roomUrlParser.toString();
+		// const roomUrl = roomUrlParser.toString();
 
 		// Get displayName from cookie (if not already given as param).
 		// const userCookie = cookiesManager.getUser() || {};
@@ -128,9 +127,9 @@ export class Init{
 			device.version = undefined;
 		}
 
-		// NOTE: I don't like this.
-		store.dispatch(
-			stateActions.setRoomUrl(roomUrl));
+		// // NOTE: I don't like this.
+		// store.dispatch(
+		// 	stateActions.setRoomUrl(roomUrl));
 
 		// NOTE: I don't like this.
 		store.dispatch(

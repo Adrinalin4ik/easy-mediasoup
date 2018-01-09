@@ -33,12 +33,7 @@
   "homepage": "https://github.com/Adrinalin4ik/easy-mediasoup#readme",
   "dependencies": {
     "debug": "^3.1.0",
-    "detectrtc": "^1.3.5",
-    "hark": "^1.1.6",
-    "js-cookie": "^2.2.0",
-    "lodash": "^4.17.4",
     "mediasoup-client": "^2.0.3",
-    "node-random-name": "^1.0.1",
     "protoo-client": "^2.0.5",
     "random-string": "^0.2.0",
     "redux": "^3.7.2",

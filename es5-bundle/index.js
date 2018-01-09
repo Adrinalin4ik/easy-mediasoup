@@ -5,21 +5,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Init = undefined;
 
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
-var _getIterator2 = require('babel-runtime/core-js/get-iterator');
-
-var _getIterator3 = _interopRequireDefault(_getIterator2);
-
 var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
 var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
-
-var _urlParse = require('url-parse');
-
-var _urlParse2 = _interopRequireDefault(_urlParse);
 
 var _redux = require('redux');
 
@@ -55,10 +43,6 @@ var _roomClientMiddleware = require('./redux/roomClientMiddleware');
 
 var _roomClientMiddleware2 = _interopRequireDefault(_roomClientMiddleware);
 
-var _lodash = require('lodash');
-
-var _ = _interopRequireWildcard(_lodash);
-
 var _wildemitter = require('wildemitter');
 
 var emitter = _interopRequireWildcard(_wildemitter);
@@ -69,14 +53,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // import Room from './components/Room';
 
-// import * as cookiesManager from './cookiesManager';
-
-// import randomString from 'random-string';
-// import randomName from 'node-random-name';
-
-// import React from 'react';
-// import { render } from 'react-dom';
-// import { Provider } from 'react-redux';
 var Init = exports.Init = function Init(config) {
 	var _this = this;
 
@@ -107,7 +83,7 @@ var Init = exports.Init = function Init(config) {
 	var store = this.store = (0, _redux.createStore)(_reducers2.default, undefined, _redux.applyMiddleware.apply(undefined, reduxMiddlewares));
 	//room settings
 	var peerName = config.peerName;
-	var urlParser = new _urlParse2.default(window.location.href, true);
+	// const urlParser = new UrlParse(window.location.href, true);
 	var roomId = config.roomId;
 	var produce = config.produce || true;
 	var displayName = config.displayName;
@@ -125,43 +101,23 @@ var Init = exports.Init = function Init(config) {
 	// }
 
 	// Get the effective/shareable Room URL.
-	var roomUrlParser = new _urlParse2.default(window.location.href, true);
+	// const roomUrlParser = new UrlParse(window.location.href, true);
 
-	var _iteratorNormalCompletion = true;
-	var _didIteratorError = false;
-	var _iteratorError = undefined;
+	// for (const key of Object.keys(roomUrlParser.query))
+	// {
+	// 	// Don't keep some custom params.
+	// 	switch (key)
+	// 	{
+	// 		case 'roomId':
+	// 		case 'simulcast':
+	// 			break;
+	// 		default:
+	// 			delete roomUrlParser.query[key];
+	// 	}
+	// }
+	// delete roomUrlParser.hash;
 
-	try {
-		for (var _iterator = (0, _getIterator3.default)((0, _keys2.default)(roomUrlParser.query)), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-			var key = _step.value;
-
-			// Don't keep some custom params.
-			switch (key) {
-				case 'roomId':
-				case 'simulcast':
-					break;
-				default:
-					delete roomUrlParser.query[key];
-			}
-		}
-	} catch (err) {
-		_didIteratorError = true;
-		_iteratorError = err;
-	} finally {
-		try {
-			if (!_iteratorNormalCompletion && _iterator.return) {
-				_iterator.return();
-			}
-		} finally {
-			if (_didIteratorError) {
-				throw _iteratorError;
-			}
-		}
-	}
-
-	delete roomUrlParser.hash;
-
-	var roomUrl = roomUrlParser.toString();
+	// const roomUrl = roomUrlParser.toString();
 
 	// Get displayName from cookie (if not already given as param).
 	// const userCookie = cookiesManager.getUser() || {};
@@ -187,8 +143,9 @@ var Init = exports.Init = function Init(config) {
 		device.version = undefined;
 	}
 
-	// NOTE: I don't like this.
-	store.dispatch(stateActions.setRoomUrl(roomUrl));
+	// // NOTE: I don't like this.
+	// store.dispatch(
+	// 	stateActions.setRoomUrl(roomUrl));
 
 	// NOTE: I don't like this.
 	store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
@@ -233,4 +190,13 @@ var Init = exports.Init = function Init(config) {
 	// 	logger.debug(
 	// 		global.CLIENT._recvTransport._handler._pc.localDescription.sdp);
 	// };
-}; // import domready from 'domready';
+};
+// import * as cookiesManager from './cookiesManager';
+
+// import randomString from 'random-string';
+// import randomName from 'node-random-name';
+// import domready from 'domready';
+// import UrlParse from 'url-parse';
+// import React from 'react';
+// import { render } from 'react-dom';
+// import { Provider } from 'react-redux';
