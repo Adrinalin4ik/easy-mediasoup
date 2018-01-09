@@ -24,8 +24,17 @@
             var room = location.search && location.search.split('?')[1];
             var config = {
                 roomId:'ts_19',
+                // media_server_wss:"wss://demo.mediasoup.org:3443"
                 peerName:"test",
-                media_server_wss:"wss://demo.mediasoup.org:3443"
+                media_server_wss:"wss://mediasoup.oblakogroup.ru",
+                turnservers:[
+                    {
+                      urls: ["turn:turn.oblakogroup.ru", "turn:turn.oblakogroup.ru?transport=udp", "turn:turn.oblakogroup.ru?transport=tcp"],
+                      username: 'oblakogroup1',
+                      credential: 'Ob1ako'
+                    }
+                ]
+                // media_server_wss:"wss://demo.mediasoup.org:3443"
                 
             }
             var em = new EasyMediasoup.Init(config)
