@@ -19,7 +19,7 @@ const room = (state = initialState, action) =>
 		case 'SET_ROOM_STATE':
 		{
 			const roomState = action.payload.state;
-
+			global.emitter.emit("SET_ROOM_STATE", roomState)
 			if (roomState == 'connected')
 				return { ...state, state: roomState };
 			else
@@ -29,7 +29,7 @@ const room = (state = initialState, action) =>
 		case 'SET_ROOM_ACTIVE_SPEAKER':
 		{
 			const { peerName } = action.payload;
-
+			global.emitter.emit("SET_ROOM_ACTIVE_SPEAKER", peerName)
 			return { ...state, activeSpeakerName: peerName };
 		}
 

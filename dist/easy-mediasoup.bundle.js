@@ -1326,13 +1326,13 @@ var Init = exports.Init = function Init(config) {
 
 	var store = this.store = (0, _redux.createStore)(_reducers2.default, undefined, _redux.applyMiddleware.apply(undefined, reduxMiddlewares));
 	//room settings
-	var peerName = config.peerName || randomString({ length: 8 }).toLowerCase();
+	var peerName = config.peerName;
 	var urlParser = new _urlParse2.default(window.location.href, true);
 	var roomId = config.roomId;
-	var produce = config.produce !== 'false';
+	var produce = config.produce || true;
 	var displayName = config.displayName;
-	var isSipEndpoint = config.sipEndpoint === 'true';
-	var useSimulcast = config.simulcast !== 'false';
+	var isSipEndpoint = config.sipEndpoint || false;
+	var useSimulcast = config.useSimulcast || false;
 	var media_server_wss = config.media_server_wss;
 	var turnservers = config.turnservers || [];
 
@@ -1974,6 +1974,7 @@ var producers = function producers() {
 exports.default = producers;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"babel-runtime/helpers/defineProperty":33,"babel-runtime/helpers/extends":34}],10:[function(require,module,exports){
+(function (global){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2008,7 +2009,7 @@ var room = function room() {
 		case 'SET_ROOM_STATE':
 			{
 				var roomState = action.payload.state;
-
+				global.emitter.emit("SET_ROOM_STATE", roomState);
 				if (roomState == 'connected') return (0, _extends3.default)({}, state, { state: roomState });else return (0, _extends3.default)({}, state, { state: roomState, activeSpeakerName: null });
 			}
 
@@ -2016,7 +2017,7 @@ var room = function room() {
 			{
 				var peerName = action.payload.peerName;
 
-
+				global.emitter.emit("SET_ROOM_ACTIVE_SPEAKER", peerName);
 				return (0, _extends3.default)({}, state, { activeSpeakerName: peerName });
 			}
 
@@ -2026,6 +2027,7 @@ var room = function room() {
 };
 
 exports.default = room;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"babel-runtime/helpers/extends":34}],11:[function(require,module,exports){
 'use strict';
 

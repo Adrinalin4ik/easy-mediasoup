@@ -32,7 +32,7 @@ var room = function room() {
 		case 'SET_ROOM_STATE':
 			{
 				var roomState = action.payload.state;
-
+				global.emitter.emit("SET_ROOM_STATE", roomState);
 				if (roomState == 'connected') return (0, _extends3.default)({}, state, { state: roomState });else return (0, _extends3.default)({}, state, { state: roomState, activeSpeakerName: null });
 			}
 
@@ -40,7 +40,7 @@ var room = function room() {
 			{
 				var peerName = action.payload.peerName;
 
-
+				global.emitter.emit("SET_ROOM_ACTIVE_SPEAKER", peerName);
 				return (0, _extends3.default)({}, state, { activeSpeakerName: peerName });
 			}
 

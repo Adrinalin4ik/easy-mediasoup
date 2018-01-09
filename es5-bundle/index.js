@@ -106,13 +106,13 @@ var Init = exports.Init = function Init(config) {
 
 	var store = this.store = (0, _redux.createStore)(_reducers2.default, undefined, _redux.applyMiddleware.apply(undefined, reduxMiddlewares));
 	//room settings
-	var peerName = config.peerName || randomString({ length: 8 }).toLowerCase();
+	var peerName = config.peerName;
 	var urlParser = new _urlParse2.default(window.location.href, true);
 	var roomId = config.roomId;
-	var produce = config.produce !== 'false';
+	var produce = config.produce || true;
 	var displayName = config.displayName;
-	var isSipEndpoint = config.sipEndpoint === 'true';
-	var useSimulcast = config.simulcast !== 'false';
+	var isSipEndpoint = config.sipEndpoint || false;
+	var useSimulcast = config.useSimulcast || false;
 	var media_server_wss = config.media_server_wss;
 	var turnservers = config.turnservers || [];
 

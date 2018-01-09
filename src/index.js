@@ -62,13 +62,13 @@ export class Init{
 			applyReduxMiddleware(...reduxMiddlewares)
 		);
 		//room settings
-		const peerName = config.peerName || randomString({ length: 8 }).toLowerCase();
+		const peerName = config.peerName
 		const urlParser = new UrlParse(window.location.href, true);
 		let roomId = config.roomId;
-		const produce = config.produce !== 'false';
+		const produce = config.produce || true;
 		let displayName = config.displayName;
-		const isSipEndpoint = config.sipEndpoint === 'true';
-		const useSimulcast = config.simulcast !== 'false';
+		const isSipEndpoint = config.sipEndpoint || false;
+		const useSimulcast = config.useSimulcast || false;
 		const media_server_wss = config.media_server_wss
 		const turnservers = config.turnservers || []
 
