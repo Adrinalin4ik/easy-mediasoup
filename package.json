@@ -1,6 +1,6 @@
 {
   "name": "easy-mediasoup",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mediasoup overhead",
   "main": "./dist/easy-mediasoup.js",
   "scripts": {
@@ -61,7 +61,6 @@
     "request": "^2.72.0",
     "selenium-webdriver": "^3.0.1",
     "tape": "^4.0.0",
-    "testling": "^1.7.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.7.3",
     "http-server": "^0.2.2"
