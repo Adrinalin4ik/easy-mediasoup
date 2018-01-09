@@ -23,7 +23,9 @@
     "url": "git+https://github.com/Adrinalin4ik/easy-mediasoup.git"
   },
   "keywords": [
-    "mediasoup"
+    "mediasoup",
+    "webrtc",
+    "sfu"
   ],
   "author": "Alexey Panfilkin",
   "license": "ISC",
