@@ -18,7 +18,7 @@ export default class Logger
 			this._warn = debug(`${APP_NAME}:WARN`);
 			this._error = debug(`${APP_NAME}:ERROR`);
 		}
-		this._debug.enabled = true
+		this._debug.enabled = false
 		// if (global.debug_mode){
 		// 	this._debug.enabled = true
 		// }else{

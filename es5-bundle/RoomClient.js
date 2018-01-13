@@ -136,7 +136,7 @@ var RoomClient = function () {
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new _map2.default();
-		this._is_webcam_enabled = false;
+		this._is_webcam_enabled = true;
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -216,13 +216,19 @@ var RoomClient = function () {
 	}, {
 		key: 'enableWebcam',
 		value: function enableWebcam() {
+			logger.debug('enableWebcam()');
+			this._is_webcam_enabled = true;
+			this._activateWebcam();
+		}
+	}, {
+		key: '_activateWebcam',
+		value: function _activateWebcam() {
 			var _this3 = this;
 
-			logger.debug('enableWebcam()');
+			logger.debug('activateWebcam()');
 
 			// Store in cookie.
 			// cookiesManager.setDevices({ webcamEnabled: true });
-
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
@@ -231,9 +237,8 @@ var RoomClient = function () {
 				return _this3._setWebcamProducer();
 			}).then(function () {
 				_this3._dispatch(stateActions.setWebcamInProgress(false));
-				_this3._is_webcam_enabled = true;
 			}).catch(function (error) {
-				logger.error('enableWebcam() | failed: %o', error);
+				logger.error('activateWebcam() | failed: %o', error);
 
 				_this3._dispatch(stateActions.setWebcamInProgress(false));
 			});
@@ -241,12 +246,16 @@ var RoomClient = function () {
 	}, {
 		key: 'disableWebcam',
 		value: function disableWebcam() {
+			logger.debug('disableWebcam()');
+			this._is_webcam_enabled = false;
+			this._deactivateWebcam();
+		}
+	}, {
+		key: '_deactivateWebcam',
+		value: function _deactivateWebcam() {
 			var _this4 = this;
 
-			logger.debug('disableWebcam()');
-
-			// Store in cookie.
-			// cookiesManager.setDevices({ webcamEnabled: false });
+			logger.debug('deactivateWebcam()');
 
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
@@ -254,10 +263,8 @@ var RoomClient = function () {
 				_this4._webcamProducer.close();
 
 				_this4._dispatch(stateActions.setWebcamInProgress(false));
-
-				_this4._is_webcam_enabled = false;
 			}).catch(function (error) {
-				logger.error('disableWebcam() | failed: %o', error);
+				logger.error('deactivateWebcam() | failed: %o', error);
 
 				_this4._dispatch(stateActions.setWebcamInProgress(false));
 			});
@@ -268,7 +275,7 @@ var RoomClient = function () {
 			var _this5 = this;
 
 			logger.debug('changeWebcam()');
-
+			this._is_webcam_enabled = true;
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
@@ -287,7 +294,6 @@ var RoomClient = function () {
 
 				// Reset video resolution to HD.
 				_this5._webcam.resolution = 'hd';
-				_this5._is_webcam_enabled = true;
 			}).then(function () {
 				var _webcam = _this5._webcam,
 				    device = _webcam.device,
@@ -514,7 +520,7 @@ var RoomClient = function () {
 			this._dispatch(stateActions.setAudioOnlyInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				if (!_this9._webcamProducer && _this9._room.canSend('video')) return _this9.enableWebcam();
+				if (!_this9._webcamProducer && _this9._room.canSend('video')) return _this9._activateWebcam();
 			}).then(function () {
 				var _iteratorNormalCompletion3 = true;
 				var _didIteratorError3 = false;
@@ -787,7 +793,7 @@ var RoomClient = function () {
 					// const devicesCookie = cookiesManager.getDevices();
 
 					// if (!devicesCookie || devicesCookie.webcamEnabled)
-					_this12.enableWebcam();
+					_this12._activateWebcam();
 				});
 			}).then(function () {
 				_this12._dispatch(stateActions.setRoomState('connected'));
@@ -923,8 +929,8 @@ var RoomClient = function () {
 		value: function _setWebcamProducer() {
 			var _this14 = this;
 
-			// if (!this._is_webcam_enabled) return 0
-			// this._is_webcam_enabled = true
+			if (!this._is_webcam_enabled) return 0;
+
 			if (!this._room.canSend('video')) {
 				return _promise2.default.reject(new Error('cannot send video'));
 			}

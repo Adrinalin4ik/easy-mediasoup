@@ -77,7 +77,7 @@ export default class RoomClient
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new Map();
-		this._is_webcam_enabled = false
+		this._is_webcam_enabled = true
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -160,10 +160,15 @@ export default class RoomClient
 	enableWebcam()
 	{
 		logger.debug('enableWebcam()');
+		this._is_webcam_enabled = true
+		this._activateWebcam();
+	}
+
+	_activateWebcam(){
+		logger.debug('activateWebcam()');
 
 		// Store in cookie.
 		// cookiesManager.setDevices({ webcamEnabled: true });
-
 		this._dispatch(
 			stateActions.setWebcamInProgress(true));
 
@@ -180,23 +185,24 @@ export default class RoomClient
 			{
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
-				this._is_webcam_enabled = true
 			})
 			.catch((error) =>
 			{
-				logger.error('enableWebcam() | failed: %o', error);
+				logger.error('activateWebcam() | failed: %o', error);
 
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
 			});
 	}
-
-	disableWebcam()
-	{
+	disableWebcam(){
 		logger.debug('disableWebcam()');
+		this._is_webcam_enabled = false
+		this._deactivateWebcam();
+	}
 
-		// Store in cookie.
-		// cookiesManager.setDevices({ webcamEnabled: false });
+
+	_deactivateWebcam(){
+		logger.debug('deactivateWebcam()');
 
 		this._dispatch(
 			stateActions.setWebcamInProgress(true));
@@ -209,11 +215,11 @@ export default class RoomClient
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
 
-				this._is_webcam_enabled = false
+				
 			})
 			.catch((error) =>
 			{
-				logger.error('disableWebcam() | failed: %o', error);
+				logger.error('deactivateWebcam() | failed: %o', error);
 
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
@@ -223,7 +229,7 @@ export default class RoomClient
 	changeWebcam()
 	{
 		logger.debug('changeWebcam()');
-
+		this._is_webcam_enabled = true
 		this._dispatch(
 			stateActions.setWebcamInProgress(true));
 
@@ -253,7 +259,6 @@ export default class RoomClient
 
 				// Reset video resolution to HD.
 				this._webcam.resolution = 'hd';
-				this._is_webcam_enabled = true
 			})
 			.then(() =>
 			{
@@ -492,7 +497,7 @@ export default class RoomClient
 			.then(() =>
 			{
 				if (!this._webcamProducer && this._room.canSend('video'))
-					return this.enableWebcam();
+					return this._activateWebcam();
 			})
 			.then(() =>
 			{
@@ -769,7 +774,7 @@ export default class RoomClient
 						// const devicesCookie = cookiesManager.getDevices();
 
 						// if (!devicesCookie || devicesCookie.webcamEnabled)
-							this.enableWebcam();
+							this._activateWebcam();
 					});
 			})
 			.then(() =>
@@ -912,8 +917,8 @@ export default class RoomClient
 
 	_setWebcamProducer()
 	{
-		// if (!this._is_webcam_enabled) return 0
-		// this._is_webcam_enabled = true
+		if (!this._is_webcam_enabled) return 0
+
 		if (!this._room.canSend('video'))
 		{
 			return Promise.reject(

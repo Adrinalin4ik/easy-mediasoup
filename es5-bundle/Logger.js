@@ -33,7 +33,7 @@ var Logger = function () {
 			this._warn = (0, _debug2.default)(APP_NAME + ':WARN');
 			this._error = (0, _debug2.default)(APP_NAME + ':ERROR');
 		}
-		this._debug.enabled = true;
+		this._debug.enabled = false;
 		// if (global.debug_mode){
 		// 	this._debug.enabled = true
 		// }else{
