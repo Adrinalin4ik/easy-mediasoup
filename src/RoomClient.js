@@ -17,17 +17,18 @@ const ROOM_OPTIONS =
 	}
 };
  
-const VIDEO_CONSTRAINS =
+let DEFAULT_VIDEO_CONSTRAINS =
 {
 	qvga : { width: { ideal: 320 }, height: { ideal: 240 } },
 	vga  : { width: { ideal: 640 }, height: { ideal: 480 } },
 	hd   : { width: { ideal: 1280 }, height: { ideal: 720 } }
 };
 
+let VIDEO_CONSTRAINS = [];
 export default class RoomClient
 {
 	constructor(
-		{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, dispatch, getState, turnservers })
+		{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, dispatch, getState, turnservers, args })
 	{
 		logger.debug(
 			'constructor() [roomId:"%s", peerName:"%s", displayName:"%s", device:%s]',
@@ -35,6 +36,7 @@ export default class RoomClient
 		const protooUrl = getProtooUrl(media_server_wss, peerName, roomId);
 		const protooTransport = new protooClient.WebSocketTransport(protooUrl);
 
+		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS
 		// Closed flag.
 		this._closed = false;
 
@@ -75,7 +77,7 @@ export default class RoomClient
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new Map();
-
+		this._is_webcam_enabled = false
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -178,6 +180,7 @@ export default class RoomClient
 			{
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
+				this._is_webcam_enabled = true
 			})
 			.catch((error) =>
 			{
@@ -205,6 +208,8 @@ export default class RoomClient
 
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
+
+				this._is_webcam_enabled = false
 			})
 			.catch((error) =>
 			{
@@ -248,6 +253,7 @@ export default class RoomClient
 
 				// Reset video resolution to HD.
 				this._webcam.resolution = 'hd';
+				this._is_webcam_enabled = true
 			})
 			.then(() =>
 			{
@@ -295,9 +301,73 @@ export default class RoomClient
 					stateActions.setWebcamInProgress(false));
 			});
 	}
+	setWebcamResulution(resolution){
+		// if (!this._is_webcam_enabled) return 0
+		logger.debug('setWebcamResulution()');
+
+		let oldResolution;
+		let newResolution;
+
+		this._dispatch(
+			stateActions.setWebcamInProgress(true));
+
+		return Promise.resolve()
+			.then(() =>
+			{
+				oldResolution = this._webcam.resolution;
+				newResolution = resolution
+
+				this._webcam.resolution = newResolution;
+			})
+			.then(() =>
+			{
+				const { device, resolution } = this._webcam;
+
+				logger.debug('setWebcamResulution() | calling getUserMedia()');
+
+				return navigator.mediaDevices.getUserMedia(
+					{
+						video :
+						{
+							deviceId : { exact: device.deviceId },
+							...VIDEO_CONSTRAINS[resolution]
+						}
+					});
+			})
+			.then((stream) =>
+			{
+				const track = stream.getVideoTracks()[0];
+
+				return this._webcamProducer.replaceTrack(track)
+					.then((newTrack) =>
+					{
+						track.stop();
+
+						return newTrack;
+					});
+			})
+			.then((newTrack) =>
+			{
+				this._dispatch(
+					stateActions.setProducerTrack(this._webcamProducer.id, newTrack));
+
+				this._dispatch(
+					stateActions.setWebcamInProgress(false));
+			})
+			.catch((error) =>
+			{
+				logger.error('changeWebcamResolution() failed: %o', error);
+
+				this._dispatch(
+					stateActions.setWebcamInProgress(false));
+
+				this._webcam.resolution = oldResolution;
+			});
+	}
 
 	changeWebcamResolution()
 	{
+		// if (!this._is_webcam_enabled) return 0
 		logger.debug('changeWebcamResolution()');
 
 		let oldResolution;
@@ -842,6 +912,8 @@ export default class RoomClient
 
 	_setWebcamProducer()
 	{
+		// if (!this._is_webcam_enabled) return 0
+		// this._is_webcam_enabled = true
 		if (!this._room.canSend('video'))
 		{
 			return Promise.reject(

@@ -27,7 +27,8 @@ exports.default = function (_ref) {
 						    device = _action$payload.device,
 						    useSimulcast = _action$payload.useSimulcast,
 						    produce = _action$payload.produce,
-						    turnservers = _action$payload.turnservers;
+						    turnservers = _action$payload.turnservers,
+						    args = _action$payload.args;
 
 
 						client = new _RoomClient2.default({
@@ -40,7 +41,8 @@ exports.default = function (_ref) {
 							produce: produce,
 							dispatch: dispatch,
 							getState: getState,
-							turnservers: turnservers
+							turnservers: turnservers,
+							args: args
 						});
 
 						// TODO: TMP

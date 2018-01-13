@@ -71,10 +71,5 @@
   },
   "files": [
     "dist"
-  ],
-  "pre-commit": [
-    "lint",
-    "validate",
-    "test"
   ]
 }

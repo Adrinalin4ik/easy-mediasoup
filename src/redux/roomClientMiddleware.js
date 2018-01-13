@@ -17,7 +17,8 @@ export default ({ dispatch, getState }) => (next) =>
 					device,
 					useSimulcast,
 					produce,
-					turnservers
+					turnservers,
+					args
 				} = action.payload;
 
 				client = new RoomClient(
@@ -31,7 +32,8 @@ export default ({ dispatch, getState }) => (next) =>
 						produce,
 						dispatch,
 						getState,
-						turnservers
+						turnservers,
+						args
 					});
 
 				// TODO: TMP

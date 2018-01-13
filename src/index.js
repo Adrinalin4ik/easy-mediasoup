@@ -70,6 +70,9 @@ export class Init{
 		const useSimulcast = config.useSimulcast || false;
 		const media_server_wss = config.media_server_wss
 		const turnservers = config.turnservers || []
+		const args = []
+
+		args.video_constrains = config.video_constrains || []
 
 
 		// if (!roomId)
@@ -138,7 +141,7 @@ export class Init{
 		// NOTE: I don't like this.
 		store.dispatch(
 			requestActions.joinRoom(
-				{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers }));
+				{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers, args }));
 
 		// TODO: Debugging stuff.
 

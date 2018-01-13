@@ -91,6 +91,9 @@ var Init = exports.Init = function Init(config) {
 	var useSimulcast = config.useSimulcast || false;
 	var media_server_wss = config.media_server_wss;
 	var turnservers = config.turnservers || [];
+	var args = [];
+
+	args.video_constrains = config.video_constrains || [];
 
 	// if (!roomId)
 	// {
@@ -151,7 +154,7 @@ var Init = exports.Init = function Init(config) {
 	store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
 
 	// NOTE: I don't like this.
-	store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers }));
+	store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers, args: args }));
 
 	// TODO: Debugging stuff.
 
