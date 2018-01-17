@@ -24,7 +24,15 @@ let DEFAULT_VIDEO_CONSTRAINS =
 	hd   : { width: { ideal: 1280 }, height: { ideal: 720 } }
 };
 
+let DEFAULT_SIMULCAST_OPTIONS =
+{
+	low : 100000,
+	medium  : 300000,
+	high   : 1500000
+};
+
 let VIDEO_CONSTRAINS = [];
+let SIMULCAST_OPTIONS = [];
 export default class RoomClient
 {
 	constructor(
@@ -37,6 +45,7 @@ export default class RoomClient
 		const protooTransport = new protooClient.WebSocketTransport(protooUrl);
 
 		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS
+		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS
 		// Closed flag.
 		this._closed = false;
 
@@ -810,7 +819,7 @@ export default class RoomClient
 				this.close();
 			});
 	}
-
+	
 	_setMicProducer()
 	{
 		if (!this._room.canSend('audio'))
@@ -957,7 +966,7 @@ export default class RoomClient
 				const track = stream.getVideoTracks()[0];
 
 				producer = this._room.createProducer(
-					track, { simulcast: this._useSimulcast }, { source: 'webcam' });
+					track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
 
 				// No need to keep original track.
 				track.stop();
@@ -1196,6 +1205,7 @@ export default class RoomClient
 
 		consumer.on('effectiveprofilechange', (profile) =>
 		{
+			consumer.setPreferredProfile(profile);
 			logger.debug(
 				'consumer "effectiveprofilechange" event [id:%s, consumer:%o, profile:%s]',
 				consumer.id, consumer, profile);

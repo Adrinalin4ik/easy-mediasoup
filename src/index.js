@@ -73,6 +73,7 @@ export class Init{
 		const args = []
 
 		args.video_constrains = config.video_constrains || []
+		args.simulcast_options = config.simulcast_options || []
 
 
 		// if (!roomId)

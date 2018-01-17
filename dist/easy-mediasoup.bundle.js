@@ -143,7 +143,14 @@ var DEFAULT_VIDEO_CONSTRAINS = {
 	hd: { width: { ideal: 1280 }, height: { ideal: 720 } }
 };
 
+var DEFAULT_SIMULCAST_OPTIONS = {
+	low: 100000,
+	medium: 300000,
+	high: 1500000
+};
+
 var VIDEO_CONSTRAINS = [];
+var SIMULCAST_OPTIONS = [];
 
 var RoomClient = function () {
 	function RoomClient(_ref) {
@@ -165,6 +172,7 @@ var RoomClient = function () {
 		var protooTransport = new _protooClient2.default.WebSocketTransport(protooUrl);
 
 		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS;
+		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS;
 		// Closed flag.
 		this._closed = false;
 
@@ -1028,7 +1036,7 @@ var RoomClient = function () {
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
-				producer = _this14._room.createProducer(track, { simulcast: _this14._useSimulcast }, { source: 'webcam' });
+				producer = _this14._room.createProducer(track, { simulcast: _this14._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
 
 				// No need to keep original track.
 				track.stop();
@@ -1262,6 +1270,7 @@ var RoomClient = function () {
 			});
 
 			consumer.on('effectiveprofilechange', function (profile) {
+				consumer.setPreferredProfile(profile);
 				logger.debug('consumer "effectiveprofilechange" event [id:%s, consumer:%o, profile:%s]', consumer.id, consumer, profile);
 
 				_this17._dispatch(stateActions.setConsumerEffectiveProfile(consumer.id, profile));
@@ -1382,6 +1391,7 @@ var Init = exports.Init = function Init(config) {
 	var args = [];
 
 	args.video_constrains = config.video_constrains || [];
+	args.simulcast_options = config.simulcast_options || [];
 
 	// if (!roomId)
 	// {
