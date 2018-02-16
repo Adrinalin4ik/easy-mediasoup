@@ -571,8 +571,8 @@ export default class RoomClient
 		this._protoo.on('open', () =>
 		{
 			logger.debug('protoo Peer "open" event');
-
-			this._joinRoom({ displayName, device });
+			if(this._room._state != "joined")
+				this._joinRoom({ displayName, device });
 		});
 
 		this._protoo.on('disconnected', () =>
@@ -599,7 +599,8 @@ export default class RoomClient
 
 			logger.warn('protoo Peer "close" event');
 
-			this.close();
+			if(this._room._state != "joined")
+				this.close();
 		});
 
 		this._protoo.on('request', (request, accept, reject) =>
@@ -772,7 +773,7 @@ export default class RoomClient
 							return;
 
 						this._setMicProducer()
-							.catch(() => {});
+						// 	.catch(() => {});
 					})
 					// Add our webcam (unless the cookie says no).
 					.then(() =>
@@ -835,93 +836,96 @@ export default class RoomClient
 		}
 
 		let producer;
+		if (!this._micProducer){
+			return Promise.resolve()
+				.then(() =>
+				{
+					logger.debug('_setMicProducer() | calling getUserMedia()');
 
-		return Promise.resolve()
-			.then(() =>
-			{
-				logger.debug('_setMicProducer() | calling getUserMedia()');
+					return navigator.mediaDevices.getUserMedia({ audio: true });
+				})
+				.then((stream) =>
+				{
+					const track = stream.getAudioTracks()[0];
 
-				return navigator.mediaDevices.getUserMedia({ audio: true });
-			})
-			.then((stream) =>
-			{
-				const track = stream.getAudioTracks()[0];
+					producer = this._room.createProducer(track, null, { source: 'mic' });
 
-				producer = this._room.createProducer(track, null, { source: 'mic' });
+					// No need to keep original track.
+					track.stop();
 
-				// No need to keep original track.
-				track.stop();
+					// Send it.
+					return producer.send(this._sendTransport);
+				})
+				.then(() =>
+				{
+					this._micProducer = producer;
 
-				// Send it.
-				return producer.send(this._sendTransport);
-			})
-			.then(() =>
-			{
-				this._micProducer = producer;
+					this._dispatch(stateActions.addProducer(
+						{
+							id             : producer.id,
+							source         : 'mic',
+							locallyPaused  : producer.locallyPaused,
+							remotelyPaused : producer.remotelyPaused,
+							track          : producer.track,
+							codec          : producer.rtpParameters.codecs[0].name
+						}));
 
-				this._dispatch(stateActions.addProducer(
+					producer.on('close', (originator) =>
 					{
-						id             : producer.id,
-						source         : 'mic',
-						locallyPaused  : producer.locallyPaused,
-						remotelyPaused : producer.remotelyPaused,
-						track          : producer.track,
-						codec          : producer.rtpParameters.codecs[0].name
-					}));
+						logger.debug(
+							'mic Producer "close" event [originator:%s]', originator);
 
-				producer.on('close', (originator) =>
-				{
-					logger.debug(
-						'mic Producer "close" event [originator:%s]', originator);
+						this._micProducer = null;
+						this._dispatch(stateActions.removeProducer(producer.id));
+					});
 
-					this._micProducer = null;
-					this._dispatch(stateActions.removeProducer(producer.id));
-				});
-
-				producer.on('pause', (originator) =>
-				{
-					logger.debug(
-						'mic Producer "pause" event [originator:%s]', originator);
-
-					this._dispatch(stateActions.setProducerPaused(producer.id, originator));
-				});
-
-				producer.on('resume', (originator) =>
-				{
-					logger.debug(
-						'mic Producer "resume" event [originator:%s]', originator);
-
-					this._dispatch(stateActions.setProducerResumed(producer.id, originator));
-				});
-
-				producer.on('handled', () =>
-				{
-					logger.debug('mic Producer "handled" event');
-				});
-
-				producer.on('unhandled', () =>
-				{
-					logger.debug('mic Producer "unhandled" event');
-				});
-			})
-			.then(() =>
-			{
-				logger.debug('_setMicProducer() succeeded');
-			})
-			.catch((error) =>
-			{
-				logger.error('_setMicProducer() failed:%o', error);
-
-				this._dispatch(requestActions.notify(
+					producer.on('pause', (originator) =>
 					{
-						text : `Mic producer failed: ${error.name}:${error.message}`
-					}));
+						logger.debug(
+							'mic Producer "pause" event [originator:%s]', originator);
 
-				if (producer)
-					producer.close();
+						this._dispatch(stateActions.setProducerPaused(producer.id, originator));
+					});
 
-				throw error;
-			});
+					producer.on('resume', (originator) =>
+					{
+						logger.debug(
+							'mic Producer "resume" event [originator:%s]', originator);
+
+						this._dispatch(stateActions.setProducerResumed(producer.id, originator));
+					});
+
+					producer.on('handled', () =>
+					{
+						logger.debug('mic Producer "handled" event');
+					});
+
+					producer.on('unhandled', () =>
+					{
+						logger.debug('mic Producer "unhandled" event');
+					});
+				})
+				.then(() =>
+				{
+					logger.debug('_setMicProducer() succeeded');
+				})
+				.catch((error) =>
+				{
+					logger.error('_setMicProducer() failed:%o', error);
+
+					this._dispatch(requestActions.notify(
+						{
+							text : `Mic producer failed: ${error.name}:${error.message}`
+						}));
+
+					if (producer)
+						producer.close();
+
+					throw error;
+				});
+		}else{
+			return this._micProducer
+		}
 	}
 
 	_setWebcamProducer()
@@ -941,110 +945,113 @@ export default class RoomClient
 		}
 
 		let producer;
+		if (!this._room._webcamProducer){
+			return Promise.resolve()
+				.then(() =>
+				{
+					const { device, resolution } = this._webcam;
 
-		return Promise.resolve()
-			.then(() =>
-			{
-				const { device, resolution } = this._webcam;
+					if (!device)
+						throw new Error('no webcam devices');
 
-				if (!device)
-					throw new Error('no webcam devices');
+					logger.debug('_setWebcamProducer() | calling getUserMedia()');
 
-				logger.debug('_setWebcamProducer() | calling getUserMedia()');
-
-				return navigator.mediaDevices.getUserMedia(
-					{
-						video :
+					return navigator.mediaDevices.getUserMedia(
 						{
-							deviceId : { exact: device.deviceId },
-							...VIDEO_CONSTRAINS[resolution]
-						}
+							video :
+							{
+								deviceId : { exact: device.deviceId },
+								...VIDEO_CONSTRAINS[resolution]
+							}
+						});
+				})
+				.then((stream) =>
+				{
+					const track = stream.getVideoTracks()[0];
+
+					producer = this._room.createProducer(
+						track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
+
+					// No need to keep original track.
+					track.stop();
+
+					// Send it.
+					return producer.send(this._sendTransport);
+				})
+				.then(() =>
+				{
+					this._webcamProducer = producer;
+
+					const { device } = this._webcam;
+
+					this._dispatch(stateActions.addProducer(
+						{
+							id             : producer.id,
+							source         : 'webcam',
+							deviceLabel    : device.label,
+							type           : this._getWebcamType(device),
+							locallyPaused  : producer.locallyPaused,
+							remotelyPaused : producer.remotelyPaused,
+							track          : producer.track,
+							codec          : producer.rtpParameters.codecs[0].name
+						}));
+
+					producer.on('close', (originator) =>
+					{
+						logger.debug(
+							'webcam Producer "close" event [originator:%s]', originator);
+
+						this._webcamProducer = null;
+						this._dispatch(stateActions.removeProducer(producer.id));
 					});
-			})
-			.then((stream) =>
-			{
-				const track = stream.getVideoTracks()[0];
 
-				producer = this._room.createProducer(
-					track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
-
-				// No need to keep original track.
-				track.stop();
-
-				// Send it.
-				return producer.send(this._sendTransport);
-			})
-			.then(() =>
-			{
-				this._webcamProducer = producer;
-
-				const { device } = this._webcam;
-
-				this._dispatch(stateActions.addProducer(
+					producer.on('pause', (originator) =>
 					{
-						id             : producer.id,
-						source         : 'webcam',
-						deviceLabel    : device.label,
-						type           : this._getWebcamType(device),
-						locallyPaused  : producer.locallyPaused,
-						remotelyPaused : producer.remotelyPaused,
-						track          : producer.track,
-						codec          : producer.rtpParameters.codecs[0].name
-					}));
+						logger.debug(
+							'webcam Producer "pause" event [originator:%s]', originator);
 
-				producer.on('close', (originator) =>
-				{
-					logger.debug(
-						'webcam Producer "close" event [originator:%s]', originator);
+						this._dispatch(stateActions.setProducerPaused(producer.id, originator));
+					});
 
-					this._webcamProducer = null;
-					this._dispatch(stateActions.removeProducer(producer.id));
-				});
-
-				producer.on('pause', (originator) =>
-				{
-					logger.debug(
-						'webcam Producer "pause" event [originator:%s]', originator);
-
-					this._dispatch(stateActions.setProducerPaused(producer.id, originator));
-				});
-
-				producer.on('resume', (originator) =>
-				{
-					logger.debug(
-						'webcam Producer "resume" event [originator:%s]', originator);
-
-					this._dispatch(stateActions.setProducerResumed(producer.id, originator));
-				});
-
-				producer.on('handled', () =>
-				{
-					logger.debug('webcam Producer "handled" event');
-				});
-
-				producer.on('unhandled', () =>
-				{
-					logger.debug('webcam Producer "unhandled" event');
-				});
-			})
-			.then(() =>
-			{
-				logger.debug('_setWebcamProducer() succeeded');
-			})
-			.catch((error) =>
-			{
-				logger.error('_setWebcamProducer() failed:%o', error);
-
-				this._dispatch(requestActions.notify(
+					producer.on('resume', (originator) =>
 					{
-						text : `Webcam producer failed: ${error.name}:${error.message}`
-					}));
+						logger.debug(
+							'webcam Producer "resume" event [originator:%s]', originator);
 
-				if (producer)
-					producer.close();
+						this._dispatch(stateActions.setProducerResumed(producer.id, originator));
+					});
 
-				throw error;
-			});
+					producer.on('handled', () =>
+					{
+						logger.debug('webcam Producer "handled" event');
+					});
+
+					producer.on('unhandled', () =>
+					{
+						logger.debug('webcam Producer "unhandled" event');
+					});
+				})
+				.then(() =>
+				{
+					logger.debug('_setWebcamProducer() succeeded');
+				})
+				.catch((error) =>
+				{
+					logger.error('_setWebcamProducer() failed:%o', error);
+
+					this._dispatch(requestActions.notify(
+						{
+							text : `Webcam producer failed: ${error.name}:${error.message}`
+						}));
+
+					if (producer)
+						producer.close();
+
+					throw error;
+				});
+		}else{
+			return this._room._webcamProducer
+		}
 	}
 
 	_updateWebcams()

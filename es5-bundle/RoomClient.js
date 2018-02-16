@@ -622,8 +622,7 @@ var RoomClient = function () {
 
 			this._protoo.on('open', function () {
 				logger.debug('protoo Peer "open" event');
-
-				_this11._joinRoom({ displayName: displayName, device: device });
+				if (_this11._room._state != "joined") _this11._joinRoom({ displayName: displayName, device: device });
 			});
 
 			this._protoo.on('disconnected', function () {
@@ -647,7 +646,7 @@ var RoomClient = function () {
 
 				logger.warn('protoo Peer "close" event');
 
-				_this11.close();
+				if (_this11._room._state != "joined") _this11.close();
 			});
 
 			this._protoo.on('request', function (request, accept, reject) {
@@ -792,7 +791,8 @@ var RoomClient = function () {
 				.then(function () {
 					if (!_this12._room.canSend('audio')) return;
 
-					_this12._setMicProducer().catch(function () {});
+					_this12._setMicProducer();
+					// 	.catch(() => {});
 				})
 				// Add our webcam (unless the cookie says no).
 				.then(function () {
@@ -865,72 +865,75 @@ var RoomClient = function () {
 			}
 
 			var producer = void 0;
+			if (!this._micProducer) {
+				return _promise2.default.resolve().then(function () {
+					logger.debug('_setMicProducer() | calling getUserMedia()');
 
-			return _promise2.default.resolve().then(function () {
-				logger.debug('_setMicProducer() | calling getUserMedia()');
+					return navigator.mediaDevices.getUserMedia({ audio: true });
+				}).then(function (stream) {
+					var track = stream.getAudioTracks()[0];
 
-				return navigator.mediaDevices.getUserMedia({ audio: true });
-			}).then(function (stream) {
-				var track = stream.getAudioTracks()[0];
+					producer = _this13._room.createProducer(track, null, { source: 'mic' });
 
-				producer = _this13._room.createProducer(track, null, { source: 'mic' });
+					// No need to keep original track.
+					track.stop();
 
-				// No need to keep original track.
-				track.stop();
+					// Send it.
+					return producer.send(_this13._sendTransport);
+				}).then(function () {
+					_this13._micProducer = producer;
 
-				// Send it.
-				return producer.send(_this13._sendTransport);
-			}).then(function () {
-				_this13._micProducer = producer;
+					_this13._dispatch(stateActions.addProducer({
+						id: producer.id,
+						source: 'mic',
+						locallyPaused: producer.locallyPaused,
+						remotelyPaused: producer.remotelyPaused,
+						track: producer.track,
+						codec: producer.rtpParameters.codecs[0].name
+					}));
 
-				_this13._dispatch(stateActions.addProducer({
-					id: producer.id,
-					source: 'mic',
-					locallyPaused: producer.locallyPaused,
-					remotelyPaused: producer.remotelyPaused,
-					track: producer.track,
-					codec: producer.rtpParameters.codecs[0].name
-				}));
+					producer.on('close', function (originator) {
+						logger.debug('mic Producer "close" event [originator:%s]', originator);
 
-				producer.on('close', function (originator) {
-					logger.debug('mic Producer "close" event [originator:%s]', originator);
+						_this13._micProducer = null;
+						_this13._dispatch(stateActions.removeProducer(producer.id));
+					});
 
-					_this13._micProducer = null;
-					_this13._dispatch(stateActions.removeProducer(producer.id));
+					producer.on('pause', function (originator) {
+						logger.debug('mic Producer "pause" event [originator:%s]', originator);
+
+						_this13._dispatch(stateActions.setProducerPaused(producer.id, originator));
+					});
+
+					producer.on('resume', function (originator) {
+						logger.debug('mic Producer "resume" event [originator:%s]', originator);
+
+						_this13._dispatch(stateActions.setProducerResumed(producer.id, originator));
+					});
+
+					producer.on('handled', function () {
+						logger.debug('mic Producer "handled" event');
+					});
+
+					producer.on('unhandled', function () {
+						logger.debug('mic Producer "unhandled" event');
+					});
+				}).then(function () {
+					logger.debug('_setMicProducer() succeeded');
+				}).catch(function (error) {
+					logger.error('_setMicProducer() failed:%o', error);
+
+					_this13._dispatch(requestActions.notify({
+						text: 'Mic producer failed: ' + error.name + ':' + error.message
+					}));
+
+					if (producer) producer.close();
+
+					throw error;
 				});
-
-				producer.on('pause', function (originator) {
-					logger.debug('mic Producer "pause" event [originator:%s]', originator);
-
-					_this13._dispatch(stateActions.setProducerPaused(producer.id, originator));
-				});
-
-				producer.on('resume', function (originator) {
-					logger.debug('mic Producer "resume" event [originator:%s]', originator);
-
-					_this13._dispatch(stateActions.setProducerResumed(producer.id, originator));
-				});
-
-				producer.on('handled', function () {
-					logger.debug('mic Producer "handled" event');
-				});
-
-				producer.on('unhandled', function () {
-					logger.debug('mic Producer "unhandled" event');
-				});
-			}).then(function () {
-				logger.debug('_setMicProducer() succeeded');
-			}).catch(function (error) {
-				logger.error('_setMicProducer() failed:%o', error);
-
-				_this13._dispatch(requestActions.notify({
-					text: 'Mic producer failed: ' + error.name + ':' + error.message
-				}));
-
-				if (producer) producer.close();
-
-				throw error;
-			});
+			} else {
+				return this._micProducer;
+			}
 		}
 	}, {
 		key: '_setWebcamProducer',
@@ -948,88 +951,91 @@ var RoomClient = function () {
 			}
 
 			var producer = void 0;
+			if (!this._room._webcamProducer) {
+				return _promise2.default.resolve().then(function () {
+					var _webcam4 = _this14._webcam,
+					    device = _webcam4.device,
+					    resolution = _webcam4.resolution;
 
-			return _promise2.default.resolve().then(function () {
-				var _webcam4 = _this14._webcam,
-				    device = _webcam4.device,
-				    resolution = _webcam4.resolution;
+
+					if (!device) throw new Error('no webcam devices');
+
+					logger.debug('_setWebcamProducer() | calling getUserMedia()');
+
+					return navigator.mediaDevices.getUserMedia({
+						video: (0, _extends3.default)({
+							deviceId: { exact: device.deviceId }
+						}, VIDEO_CONSTRAINS[resolution])
+					});
+				}).then(function (stream) {
+					var track = stream.getVideoTracks()[0];
+
+					producer = _this14._room.createProducer(track, { simulcast: _this14._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
+
+					// No need to keep original track.
+					track.stop();
+
+					// Send it.
+					return producer.send(_this14._sendTransport);
+				}).then(function () {
+					_this14._webcamProducer = producer;
+
+					var device = _this14._webcam.device;
 
 
-				if (!device) throw new Error('no webcam devices');
+					_this14._dispatch(stateActions.addProducer({
+						id: producer.id,
+						source: 'webcam',
+						deviceLabel: device.label,
+						type: _this14._getWebcamType(device),
+						locallyPaused: producer.locallyPaused,
+						remotelyPaused: producer.remotelyPaused,
+						track: producer.track,
+						codec: producer.rtpParameters.codecs[0].name
+					}));
 
-				logger.debug('_setWebcamProducer() | calling getUserMedia()');
+					producer.on('close', function (originator) {
+						logger.debug('webcam Producer "close" event [originator:%s]', originator);
 
-				return navigator.mediaDevices.getUserMedia({
-					video: (0, _extends3.default)({
-						deviceId: { exact: device.deviceId }
-					}, VIDEO_CONSTRAINS[resolution])
+						_this14._webcamProducer = null;
+						_this14._dispatch(stateActions.removeProducer(producer.id));
+					});
+
+					producer.on('pause', function (originator) {
+						logger.debug('webcam Producer "pause" event [originator:%s]', originator);
+
+						_this14._dispatch(stateActions.setProducerPaused(producer.id, originator));
+					});
+
+					producer.on('resume', function (originator) {
+						logger.debug('webcam Producer "resume" event [originator:%s]', originator);
+
+						_this14._dispatch(stateActions.setProducerResumed(producer.id, originator));
+					});
+
+					producer.on('handled', function () {
+						logger.debug('webcam Producer "handled" event');
+					});
+
+					producer.on('unhandled', function () {
+						logger.debug('webcam Producer "unhandled" event');
+					});
+				}).then(function () {
+					logger.debug('_setWebcamProducer() succeeded');
+				}).catch(function (error) {
+					logger.error('_setWebcamProducer() failed:%o', error);
+
+					_this14._dispatch(requestActions.notify({
+						text: 'Webcam producer failed: ' + error.name + ':' + error.message
+					}));
+
+					if (producer) producer.close();
+
+					throw error;
 				});
-			}).then(function (stream) {
-				var track = stream.getVideoTracks()[0];
-
-				producer = _this14._room.createProducer(track, { simulcast: _this14._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
-
-				// No need to keep original track.
-				track.stop();
-
-				// Send it.
-				return producer.send(_this14._sendTransport);
-			}).then(function () {
-				_this14._webcamProducer = producer;
-
-				var device = _this14._webcam.device;
-
-
-				_this14._dispatch(stateActions.addProducer({
-					id: producer.id,
-					source: 'webcam',
-					deviceLabel: device.label,
-					type: _this14._getWebcamType(device),
-					locallyPaused: producer.locallyPaused,
-					remotelyPaused: producer.remotelyPaused,
-					track: producer.track,
-					codec: producer.rtpParameters.codecs[0].name
-				}));
-
-				producer.on('close', function (originator) {
-					logger.debug('webcam Producer "close" event [originator:%s]', originator);
-
-					_this14._webcamProducer = null;
-					_this14._dispatch(stateActions.removeProducer(producer.id));
-				});
-
-				producer.on('pause', function (originator) {
-					logger.debug('webcam Producer "pause" event [originator:%s]', originator);
-
-					_this14._dispatch(stateActions.setProducerPaused(producer.id, originator));
-				});
-
-				producer.on('resume', function (originator) {
-					logger.debug('webcam Producer "resume" event [originator:%s]', originator);
-
-					_this14._dispatch(stateActions.setProducerResumed(producer.id, originator));
-				});
-
-				producer.on('handled', function () {
-					logger.debug('webcam Producer "handled" event');
-				});
-
-				producer.on('unhandled', function () {
-					logger.debug('webcam Producer "unhandled" event');
-				});
-			}).then(function () {
-				logger.debug('_setWebcamProducer() succeeded');
-			}).catch(function (error) {
-				logger.error('_setWebcamProducer() failed:%o', error);
-
-				_this14._dispatch(requestActions.notify({
-					text: 'Webcam producer failed: ' + error.name + ':' + error.message
-				}));
-
-				if (producer) producer.close();
-
-				throw error;
-			});
+			} else {
+				return this._room._webcamProducer;
+			}
 		}
 	}, {
 		key: '_updateWebcams',
