@@ -87,6 +87,7 @@ export default class RoomClient
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new Map();
 		this._is_webcam_enabled = true
+		this._is_audio_enabled = true
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -155,14 +156,14 @@ export default class RoomClient
 	muteMic()
 	{
 		logger.debug('muteMic()');
-
+		this._is_audio_enabled = false;
 		this._micProducer.pause();
 	}
 
 	unmuteMic()
 	{
 		logger.debug('unmuteMic()');
-
+		this._is_audio_enabled = true;
 		this._micProducer.resume();
 	}
 
@@ -822,7 +823,9 @@ export default class RoomClient
 	}
 	
 	_setMicProducer()
-	{
+	{	
+		if (!this._is_audio_enabled) return 0
+
 		if (!this._room.canSend('audio'))
 		{
 			return Promise.reject(
