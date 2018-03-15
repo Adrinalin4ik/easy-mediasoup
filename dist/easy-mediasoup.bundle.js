@@ -214,6 +214,7 @@ var RoomClient = function () {
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new _map2.default();
 		this._is_webcam_enabled = true;
+		this._is_audio_enabled = true;
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -280,14 +281,14 @@ var RoomClient = function () {
 		key: 'muteMic',
 		value: function muteMic() {
 			logger.debug('muteMic()');
-
+			this._is_audio_enabled = false;
 			this._micProducer.pause();
 		}
 	}, {
 		key: 'unmuteMic',
 		value: function unmuteMic() {
 			logger.debug('unmuteMic()');
-
+			this._is_audio_enabled = true;
 			this._micProducer.resume();
 		}
 	}, {
@@ -924,6 +925,8 @@ var RoomClient = function () {
 		key: '_setMicProducer',
 		value: function _setMicProducer() {
 			var _this13 = this;
+
+			if (!this._is_audio_enabled) return 0;
 
 			if (!this._room.canSend('audio')) {
 				return _promise2.default.reject(new Error('cannot send audio'));
