@@ -108,7 +108,11 @@ export default class RoomClient
 		this._closed = true;
 
 		logger.debug('close()');
-
+		this._room.producers.forEach((producer) => {
+			producer.track.stop();
+		})
+		// this.room._micProducer.track.stop()
+		// this.room._webcamProducer.track.stop()
 		// Leave the mediasoup Room.
 		this._room.leave();
 
@@ -164,7 +168,11 @@ export default class RoomClient
 	{
 		logger.debug('unmuteMic()');
 		this._is_audio_enabled = true;
-		this._micProducer.resume();
+		if (this._micProducer){
+			this._micProducer.resume();
+		}else{
+			this._setMicProducer();
+		}
 	}
 
 	enableWebcam()
@@ -279,13 +287,21 @@ export default class RoomClient
 
 				logger.debug('changeWebcam() | calling getUserMedia()');
 
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
 				return navigator.mediaDevices.getUserMedia(
 					{
-						video :
-						{
-							deviceId : { exact: device.deviceId },
-							...VIDEO_CONSTRAINS[resolution]
-						}
+						deviceId : { exact: device.deviceId },
+						audio:false,
+						...VIDEO_CONSTRAINS[resolution],
+						video : true
 					});
 			})
 			.then((stream) =>
@@ -340,13 +356,27 @@ export default class RoomClient
 
 				logger.debug('setWebcamResulution() | calling getUserMedia()');
 
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		audio:false,
+				// 		video : true
+				// 	});
+
 				return navigator.mediaDevices.getUserMedia(
 					{
-						video :
-						{
-							deviceId : { exact: device.deviceId },
-							...VIDEO_CONSTRAINS[resolution]
-						}
+						deviceId : { exact: device.deviceId },
+						audio:false,
+						...VIDEO_CONSTRAINS[resolution],
+						video : true
 					});
 			})
 			.then((stream) =>
@@ -417,13 +447,27 @@ export default class RoomClient
 
 				logger.debug('changeWebcamResolution() | calling getUserMedia()');
 
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		audio:false,
+				// 		video : true
+				// 	});
+
 				return navigator.mediaDevices.getUserMedia(
 					{
-						video :
-						{
-							deviceId : { exact: device.deviceId },
-							...VIDEO_CONSTRAINS[resolution]
-						}
+						deviceId : { exact: device.deviceId },
+						audio:false,
+						...VIDEO_CONSTRAINS[resolution],
+						video : true
 					});
 			})
 			.then((stream) =>
@@ -845,7 +889,7 @@ export default class RoomClient
 				{
 					logger.debug('_setMicProducer() | calling getUserMedia()');
 
-					return navigator.mediaDevices.getUserMedia({ audio: true });
+					return navigator.mediaDevices.getUserMedia({ audio: true, video:false });
 				})
 				.then((stream) =>
 				{
@@ -935,11 +979,11 @@ export default class RoomClient
 	{
 		if (!this._is_webcam_enabled) return 0
 
-		if (!this._room.canSend('video'))
-		{
-			return Promise.reject(
-				new Error('cannot send video'));
-		}
+		// if (!this._room.canSend('video'))
+		// {
+		// 	return Promise.reject(
+		// 		new Error('cannot send video'));
+		// }
 
 		if (this._webcamProducer)
 		{
@@ -959,14 +1003,22 @@ export default class RoomClient
 
 					logger.debug('_setWebcamProducer() | calling getUserMedia()');
 
+					// return navigator.mediaDevices.getUserMedia(
+					// 	{
+					// 		video :
+					// 		{
+					// 			deviceId : { exact: device.deviceId },
+					// 			...VIDEO_CONSTRAINS[resolution]
+					// 		}
+					// 	});
+
 					return navigator.mediaDevices.getUserMedia(
-						{
-							video :
-							{
-								deviceId : { exact: device.deviceId },
-								...VIDEO_CONSTRAINS[resolution]
-							}
-						});
+					{
+						deviceId : { exact: device.deviceId },
+						audio:false,
+						...VIDEO_CONSTRAINS[resolution],
+						video : true
+					});
 				})
 				.then((stream) =>
 				{
