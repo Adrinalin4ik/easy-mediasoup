@@ -167,7 +167,11 @@ var RoomClient = function () {
 			this._closed = true;
 
 			logger.debug('close()');
-
+			this._room.producers.forEach(function (producer) {
+				producer.track.stop();
+			});
+			// this.room._micProducer.track.stop()
+			// this.room._webcamProducer.track.stop()
 			// Leave the mediasoup Room.
 			this._room.leave();
 
@@ -220,7 +224,11 @@ var RoomClient = function () {
 		value: function unmuteMic() {
 			logger.debug('unmuteMic()');
 			this._is_audio_enabled = true;
-			this._micProducer.resume();
+			if (this._micProducer) {
+				this._micProducer.resume();
+			} else {
+				this._setMicProducer();
+			}
 		}
 	}, {
 		key: 'enableWebcam',
@@ -313,11 +321,21 @@ var RoomClient = function () {
 
 				logger.debug('changeWebcam() | calling getUserMedia()');
 
-				return navigator.mediaDevices.getUserMedia({
-					video: (0, _extends3.default)({
-						deviceId: { exact: device.deviceId }
-					}, VIDEO_CONSTRAINS[resolution])
-				});
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
+				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+					deviceId: { exact: device.deviceId },
+					audio: false
+				}, VIDEO_CONSTRAINS[resolution], {
+					video: true
+				}));
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
@@ -362,11 +380,27 @@ var RoomClient = function () {
 
 				logger.debug('setWebcamResulution() | calling getUserMedia()');
 
-				return navigator.mediaDevices.getUserMedia({
-					video: (0, _extends3.default)({
-						deviceId: { exact: device.deviceId }
-					}, VIDEO_CONSTRAINS[resolution])
-				});
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		audio:false,
+				// 		video : true
+				// 	});
+
+				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+					deviceId: { exact: device.deviceId },
+					audio: false
+				}, VIDEO_CONSTRAINS[resolution], {
+					video: true
+				}));
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
@@ -424,11 +458,27 @@ var RoomClient = function () {
 
 				logger.debug('changeWebcamResolution() | calling getUserMedia()');
 
-				return navigator.mediaDevices.getUserMedia({
-					video: (0, _extends3.default)({
-						deviceId: { exact: device.deviceId }
-					}, VIDEO_CONSTRAINS[resolution])
-				});
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		audio:false,
+				// 		video : true
+				// 	});
+
+				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+					deviceId: { exact: device.deviceId },
+					audio: false
+				}, VIDEO_CONSTRAINS[resolution], {
+					video: true
+				}));
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
@@ -872,7 +922,7 @@ var RoomClient = function () {
 				return _promise2.default.resolve().then(function () {
 					logger.debug('_setMicProducer() | calling getUserMedia()');
 
-					return navigator.mediaDevices.getUserMedia({ audio: true });
+					return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
 				}).then(function (stream) {
 					var track = stream.getAudioTracks()[0];
 
@@ -945,9 +995,11 @@ var RoomClient = function () {
 
 			if (!this._is_webcam_enabled) return 0;
 
-			if (!this._room.canSend('video')) {
-				return _promise2.default.reject(new Error('cannot send video'));
-			}
+			// if (!this._room.canSend('video'))
+			// {
+			// 	return Promise.reject(
+			// 		new Error('cannot send video'));
+			// }
 
 			if (this._webcamProducer) {
 				return _promise2.default.reject(new Error('webcam Producer already exists'));
@@ -965,11 +1017,21 @@ var RoomClient = function () {
 
 					logger.debug('_setWebcamProducer() | calling getUserMedia()');
 
-					return navigator.mediaDevices.getUserMedia({
-						video: (0, _extends3.default)({
-							deviceId: { exact: device.deviceId }
-						}, VIDEO_CONSTRAINS[resolution])
-					});
+					// return navigator.mediaDevices.getUserMedia(
+					// 	{
+					// 		video :
+					// 		{
+					// 			deviceId : { exact: device.deviceId },
+					// 			...VIDEO_CONSTRAINS[resolution]
+					// 		}
+					// 	});
+
+					return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+						deviceId: { exact: device.deviceId },
+						audio: false
+					}, VIDEO_CONSTRAINS[resolution], {
+						video: true
+					}));
 				}).then(function (stream) {
 					var track = stream.getVideoTracks()[0];
 
