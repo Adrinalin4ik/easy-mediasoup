@@ -9,7 +9,8 @@ bundle.bundle(function (err, source) {
   if (err) {
     console.error(err);
   }
-  fs.writeFileSync('dist/easy-mediasoup.bundle.js', source);
+  fs.writeFileSync('dist/easy-mediasoup.bundle.js', source)
+  minimize();
   // fs.writeFileSync('dist/easy-mediasoup.bundle.min.js', uglify.minify('dist/easy-mediasoup.bundle.js'));
 
   // uglify.minify({"dist/easy-mediasoup.bundle.js": "compiled code"}, {
@@ -22,16 +23,18 @@ bundle.bundle(function (err, source) {
   // fs.writeFileSync('out/simplewebrtc-with-adapter.bundle.js', `${adapter}\n${source}`);
 });
 
-//get a reference to the minified version of file-1.js
-var result = uglify.minify(["dist/easy-mediasoup.bundle.js"]);
+function minimize(){
+  //get a reference to the minified version of file-1.js
+  var result = uglify.minify(["dist/easy-mediasoup.bundle.js"]);
 
 
-fs.writeFile("dist/easy-mediasoup.bundle.min.js", result.code, function(err) {
-    if(err) {
-        console.log(err);
-    } else {
-        console.log("File was successfully saved.");
-    }
-});
+  fs.writeFile("dist/easy-mediasoup.bundle.min.js", result.code, function(err) {
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("File was successfully saved.");
+      }
+  });
 
-//https://skalman.github.io/UglifyJS-online/
+  //https://skalman.github.io/UglifyJS-online/
+}
