@@ -46,6 +46,15 @@ export default class RoomClient
 
 		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS
 		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS
+
+		
+
+		this.initially_muted =  args.initially_muted;
+		this.is_audio_initialized = false;
+
+		this._is_webcam_enabled = true
+		this._is_audio_enabled = !this.initially_muted
+
 		// Closed flag.
 		this._closed = false;
 
@@ -86,8 +95,6 @@ export default class RoomClient
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new Map();
-		this._is_webcam_enabled = true
-		this._is_audio_enabled = true
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -830,7 +837,7 @@ export default class RoomClient
 
 						// if (!devicesCookie || devicesCookie.webcamEnabled)
 							this._activateWebcam();
-					});
+					})
 			})
 			.then(() =>
 			{
@@ -868,7 +875,6 @@ export default class RoomClient
 	
 	_setMicProducer()
 	{	
-		if (!this._is_audio_enabled) return 0
 
 		if (!this._room.canSend('audio'))
 		{
@@ -895,8 +901,15 @@ export default class RoomClient
 				{
 					const track = stream.getAudioTracks()[0];
 
+					
+					
 					producer = this._room.createProducer(track, null, { source: 'mic' });
 
+					//disable audio if it's muted
+					if (!this._is_audio_enabled){
+						producer.pause();
+						this.is_audio_initialized = true;
+					}
 					// No need to keep original track.
 					track.stop();
 

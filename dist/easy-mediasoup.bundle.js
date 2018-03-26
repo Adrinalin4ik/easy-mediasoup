@@ -175,6 +175,13 @@ var RoomClient = function () {
 
 		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS;
 		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS;
+
+		this.initially_muted = args.initially_muted;
+		this.is_audio_initialized = false;
+
+		this._is_webcam_enabled = true;
+		this._is_audio_enabled = !this.initially_muted;
+
 		// Closed flag.
 		this._closed = false;
 
@@ -215,8 +222,6 @@ var RoomClient = function () {
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new _map2.default();
-		this._is_webcam_enabled = true;
-		this._is_audio_enabled = true;
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -978,8 +983,6 @@ var RoomClient = function () {
 		value: function _setMicProducer() {
 			var _this13 = this;
 
-			if (!this._is_audio_enabled) return 0;
-
 			if (!this._room.canSend('audio')) {
 				return _promise2.default.reject(new Error('cannot send audio'));
 			}
@@ -999,6 +1002,11 @@ var RoomClient = function () {
 
 					producer = _this13._room.createProducer(track, null, { source: 'mic' });
 
+					//disable audio if it's muted
+					if (!_this13._is_audio_enabled) {
+						producer.pause();
+						_this13.is_audio_initialized = true;
+					}
 					// No need to keep original track.
 					track.stop();
 
@@ -1428,6 +1436,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
+	console.warn('Easy mediasoup v1.0.14');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -1465,6 +1474,7 @@ var Init = exports.Init = function Init(config) {
 
 	args.video_constrains = config.video_constrains || [];
 	args.simulcast_options = config.simulcast_options || [];
+	args.initially_muted = config.initially_muted || false;
 
 	// if (!roomId)
 	// {

@@ -24,6 +24,7 @@ import * as emitter from  "wildemitter"
 
 export class Init{
 	constructor(config){
+		console.warn('Easy mediasoup v1.0.15')
 		global.emitter = this.emitter = new emitter.default()
 		this.roomClientMiddleware = roomClientMiddleware
 		const logger = new Logger();
@@ -74,6 +75,7 @@ export class Init{
 
 		args.video_constrains = config.video_constrains || []
 		args.simulcast_options = config.simulcast_options || []
+		args.initially_muted = config.initially_muted || false
 
 
 		// if (!roomId)
