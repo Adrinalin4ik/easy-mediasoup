@@ -33,16 +33,16 @@ var Logger = function () {
 			this._warn = (0, _debug2.default)(APP_NAME + ':WARN');
 			this._error = (0, _debug2.default)(APP_NAME + ':ERROR');
 		}
-		this._debug.enabled = false;
-		if (global.debug_mode) {
-			this._debug.enabled = true;
-		} else {
-			/* eslint-disable no-console */
-			this._debug.log = console.info.bind(console);
-			this._warn.log = console.warn.bind(console);
-			this._error.log = console.error.bind(console);
-			/* eslint-enable no-console */
-		}
+		this._debug.enabled = true;
+		// if (global.debug_mode){
+		// 	this._debug.enabled = true
+		// }else{
+		// 	/* eslint-disable no-console */
+		// 	this._debug.log = console.info.bind(console);
+		// 	this._warn.log = console.warn.bind(console);
+		// 	this._error.log = console.error.bind(console);
+		// 	/* eslint-enable no-console */
+		// }	
 	}
 
 	(0, _createClass3.default)(Logger, [{

@@ -1,4 +1,5 @@
-import protooClient from 'protoo-client';
+// import protooClient from 'protoo-client';
+import socket from 'socket.io-client'
 import * as mediasoupClient from 'mediasoup-client';
 import Logger from './Logger';
 import { getProtooUrl } from './urlFactory';
@@ -42,12 +43,16 @@ export default class RoomClient
 			'constructor() [roomId:"%s", peerName:"%s", displayName:"%s", device:%s]',
 			roomId, peerName, displayName, device.flag);
 		const protooUrl = getProtooUrl(media_server_wss, peerName, roomId);
-		const protooTransport = new protooClient.WebSocketTransport(protooUrl);
+		// const protooTransport = new protooClient.WebSocketTransport(protooUrl);
+		this.connection = socket.connect(protooUrl, {reconnect: true})
+		
+		this.wss = this.connection
 
-		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS
-		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS
 
 		
+		// this.wss = this.connection.in(peerName)
+		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS
+		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS
 
 		this.initially_muted =  args.initially_muted;
 		this.is_audio_initialized = false;
@@ -74,7 +79,7 @@ export default class RoomClient
 		this._peerName = peerName;
 
 		// protoo-client Peer instance.
-		this._protoo = new protooClient.Peer(protooTransport);
+		// this._protoo = new protooClient.Peer(protooTransport);
 		// set turn servers
 		ROOM_OPTIONS.turnServers = turnservers
 		// mediasoup-client Room instance.
@@ -104,7 +109,20 @@ export default class RoomClient
 			resolution : 'hd'
 		};
 
+
+
+		this.wss.on('room-connected', () => {
+			console.log("roomConnected")
+		})
+
+		this.wss.on('pong', () => {
+			console.log("pong")
+		})
+
 		this._join({ displayName, device });
+
+		this.connection.emit('room', roomId, peerName);
+		
 	}
 
 	close()
@@ -125,43 +143,9 @@ export default class RoomClient
 
 		// Close protoo Peer (wait a bit so mediasoup-client can send
 		// the 'leaveRoom' notification).
-		setTimeout(() => this._protoo.close(), 250);
+		setTimeout(() => this.wss.close(), 250);
 
 		this._dispatch(stateActions.setRoomState('closed'));
-	}
-
-	changeDisplayName(displayName)
-	{
-		logger.debug('changeDisplayName() [displayName:"%s"]', displayName);
-
-		// Store in cookie.
-		// cookiesManager.setUser({ displayName });
-
-		return this._protoo.send('change-display-name', { displayName })
-			.then(() =>
-			{
-				this._dispatch(
-					stateActions.setDisplayName(displayName));
-
-				this._dispatch(requestActions.notify(
-					{
-						text : 'Display name changed'
-					}));
-			})
-			.catch((error) =>
-			{
-				logger.error('changeDisplayName() | failed: %o', error);
-
-				this._dispatch(requestActions.notify(
-					{
-						type : 'error',
-						text : `Could not change display name: ${error}`
-					}));
-
-				// We need to refresh the component for it to render the previous
-				// displayName again.
-				this._dispatch(stateActions.setDisplayName());
-			});
 	}
 
 	muteMic()
@@ -620,14 +604,15 @@ export default class RoomClient
 	{
 		this._dispatch(stateActions.setRoomState('connecting'));
 
-		this._protoo.on('open', () =>
+		this.wss.on('open', () =>
 		{
+			console.log("fdf")
 			logger.debug('protoo Peer "open" event');
 			if(this._room._state != "joined")
 				this._joinRoom({ displayName, device });
 		});
 
-		this._protoo.on('disconnected', () =>
+		this.wss.on('disconnected', () =>
 		{
 			logger.warn('protoo Peer "disconnected" event');
 
@@ -638,13 +623,13 @@ export default class RoomClient
 				}));
 
 			// Leave Room.
-			try { this._room.remoteClose({ cause: 'protoo disconnected' }); }
-			catch (error) {}
+			// try { this._room.remoteClose({ cause: 'protoo disconnected' }); }
+			// catch (error) {}
 
 			this._dispatch(stateActions.setRoomState('connecting'));
 		});
 
-		this._protoo.on('close', () =>
+		this.wss.on('close', () =>
 		{
 			if (this._closed)
 				return;
@@ -655,7 +640,14 @@ export default class RoomClient
 				this.close();
 		});
 
-		this._protoo.on('request', (request, accept, reject) =>
+		this.wss.on('mediasoup-notification', (request) => {
+			logger.debug(
+				'_handleProtooRequest() [method:%s, data:%o]',
+				request.method, request.data);
+			this._room.receiveNotification(notification);
+		})
+		
+		this.wss.on('request', (request, accept, reject) =>
 		{
 			logger.debug(
 				'_handleProtooRequest() [method:%s, data:%o]',
@@ -752,7 +744,7 @@ export default class RoomClient
 			logger.debug(
 				'sending mediasoup request [method:%s]:%o', request.method, request);
 
-			this._protoo.send('mediasoup-request', request)
+			this.wss.emit('mediasoup-request', request)
 				.then(callback)
 				.catch(errback);
 		});
@@ -763,7 +755,7 @@ export default class RoomClient
 				'sending mediasoup notification [method:%s]:%o',
 				notification.method, notification);
 
-			this._protoo.send('mediasoup-notification', notification)
+			this.wss.emit('mediasoup-notification', notification)
 				.catch((error) =>
 				{
 					logger.warn('could not send mediasoup notification:%o', error);
