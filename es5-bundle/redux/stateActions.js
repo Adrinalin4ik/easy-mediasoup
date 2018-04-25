@@ -38,7 +38,8 @@ var setMe = exports.setMe = function setMe(_ref) {
 
 var setMediaCapabilities = exports.setMediaCapabilities = function setMediaCapabilities(_ref2) {
 	var canSendMic = _ref2.canSendMic,
-	    canSendWebcam = _ref2.canSendWebcam;
+	    canSendWebcam = _ref2.canSendWebcam,
+	    canSendScreenShare = _ref2.canSendScreenShare;
 
 	return {
 		type: 'SET_MEDIA_CAPABILITIES',
@@ -119,6 +120,13 @@ var setProducerTrack = exports.setProducerTrack = function setProducerTrack(prod
 var setWebcamInProgress = exports.setWebcamInProgress = function setWebcamInProgress(flag) {
 	return {
 		type: 'SET_WEBCAM_IN_PROGRESS',
+		payload: { flag: flag }
+	};
+};
+
+var setScreenShareInProgress = exports.setScreenShareInProgress = function setScreenShareInProgress(flag) {
+	return {
+		type: 'SET_SCREENSHARE_IN_PROGRESS',
 		payload: { flag: flag }
 	};
 };

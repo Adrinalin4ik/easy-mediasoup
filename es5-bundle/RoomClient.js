@@ -54,6 +54,22 @@ var _stateActions = require('./redux/stateActions');
 
 var stateActions = _interopRequireWildcard(_stateActions);
 
+var _msr = require('msr');
+
+var _msr2 = _interopRequireDefault(_msr);
+
+var _requestify = require('requestify');
+
+var _requestify2 = _interopRequireDefault(_requestify);
+
+var _axios = require('axios');
+
+var _axios2 = _interopRequireDefault(_axios);
+
+var _recordrtc = require('recordrtc');
+
+var _recordrtc2 = _interopRequireDefault(_recordrtc);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -110,6 +126,8 @@ var RoomClient = function () {
 
 		this._is_webcam_enabled = true;
 		this._is_audio_enabled = !this.initially_muted;
+		this._is_screenshare_enabled = true;
+		this._screenStreamId = null;
 
 		// Closed flag.
 		this._closed = false;
@@ -148,6 +166,14 @@ var RoomClient = function () {
 		// Local webcam mediasoup Producer.
 		this._webcamProducer = null;
 
+		this._videoRecorder = null;
+		this._audioRecorder = null;
+		this._recordState = 'inactive';
+		this._recordIntervalFunc = null;
+
+		// User screen capture mediasoup Producer.
+		this._screenShareProducer = null;
+
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new _map2.default();
@@ -158,6 +184,10 @@ var RoomClient = function () {
 			device: null,
 			resolution: 'hd'
 		};
+
+		//_mediaRecorder = null;
+
+		this._tmp;
 
 		this._join({ displayName: displayName, device: device });
 	}
@@ -243,9 +273,49 @@ var RoomClient = function () {
 			this._activateWebcam();
 		}
 	}, {
+		key: 'setScreenShare',
+		value: function setScreenShare(streamId) {
+			console.log("setScreenShare()");
+			this._screenStreamId = streamId;
+			if (!this._screenShareProducer) this._activateScreenShare();else this._changeScreenForShare();
+		}
+	}, {
+		key: 'deactivateScreenShare',
+		value: function deactivateScreenShare() {
+			console.log('deactivateScreenShare()');
+			if (!this._screenShareProducer) {
+				console.log("Error! Screen share producer doesn't exist");
+				return false;
+			}
+			this._screenShareProducer = null;
+			return true;
+		}
+
+		//Запускаем продюсер захвата экрана
+
+	}, {
+		key: '_activateScreenShare',
+		value: function _activateScreenShare() {
+			var _this3 = this;
+
+			logger.debug('activateScreenShare()');
+
+			this._dispatch(stateActions.setScreenShareInProgress(true));
+
+			return _promise2.default.resolve().then(function () {
+				return _this3._setScreenShareProducer();
+			}).then(function () {
+				_this3._dispatch(stateActions.setScreenShareInProgress(false));
+			}).catch(function (error) {
+				logger.error('activateWebcam() | failed: %o', error);
+
+				_this3._dispatch(stateActions.setScreenShareInProgress(false));
+			});
+		}
+	}, {
 		key: '_activateWebcam',
 		value: function _activateWebcam() {
-			var _this3 = this;
+			var _this4 = this;
 
 			logger.debug('activateWebcam()');
 
@@ -254,15 +324,15 @@ var RoomClient = function () {
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				return _this3._updateWebcams();
+				return _this4._updateWebcams();
 			}).then(function () {
-				return _this3._setWebcamProducer();
+				return _this4._setWebcamProducer();
 			}).then(function () {
-				_this3._dispatch(stateActions.setWebcamInProgress(false));
+				_this4._dispatch(stateActions.setWebcamInProgress(false));
 			}).catch(function (error) {
 				logger.error('activateWebcam() | failed: %o', error);
 
-				_this3._dispatch(stateActions.setWebcamInProgress(false));
+				_this4._dispatch(stateActions.setWebcamInProgress(false));
 			});
 		}
 	}, {
@@ -275,49 +345,49 @@ var RoomClient = function () {
 	}, {
 		key: '_deactivateWebcam',
 		value: function _deactivateWebcam() {
-			var _this4 = this;
+			var _this5 = this;
 
 			logger.debug('deactivateWebcam()');
 
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				_this4._webcamProducer.close();
+				_this5._webcamProducer.close();
 
-				_this4._dispatch(stateActions.setWebcamInProgress(false));
+				_this5._dispatch(stateActions.setWebcamInProgress(false));
 			}).catch(function (error) {
 				logger.error('deactivateWebcam() | failed: %o', error);
 
-				_this4._dispatch(stateActions.setWebcamInProgress(false));
+				_this5._dispatch(stateActions.setWebcamInProgress(false));
 			});
 		}
 	}, {
 		key: 'changeWebcam',
 		value: function changeWebcam() {
-			var _this5 = this;
+			var _this6 = this;
 
 			logger.debug('changeWebcam()');
 			this._is_webcam_enabled = true;
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				return _this5._updateWebcams();
+				return _this6._updateWebcams();
 			}).then(function () {
-				var array = (0, _from2.default)(_this5._webcams.keys());
+				var array = (0, _from2.default)(_this6._webcams.keys());
 				var len = array.length;
-				var deviceId = _this5._webcam.device ? _this5._webcam.device.deviceId : undefined;
+				var deviceId = _this6._webcam.device ? _this6._webcam.device.deviceId : undefined;
 				var idx = array.indexOf(deviceId);
 
 				if (idx < len - 1) idx++;else idx = 0;
 
-				_this5._webcam.device = _this5._webcams.get(array[idx]);
+				_this6._webcam.device = _this6._webcams.get(array[idx]);
 
-				logger.debug('changeWebcam() | new selected webcam [device:%o]', _this5._webcam.device);
+				logger.debug('changeWebcam() | new selected webcam [device:%o]', _this6._webcam.device);
 
 				// Reset video resolution to HD.
-				_this5._webcam.resolution = 'hd';
+				_this6._webcam.resolution = 'hd';
 			}).then(function () {
-				var _webcam = _this5._webcam,
+				var _webcam = _this6._webcam,
 				    device = _webcam.device,
 				    resolution = _webcam.resolution;
 
@@ -335,6 +405,7 @@ var RoomClient = function () {
 				// 		}
 				// 	});
 
+				//return getScreenShare();
 				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
 					deviceId: { exact: device.deviceId },
 					audio: false
@@ -344,25 +415,25 @@ var RoomClient = function () {
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
-				return _this5._webcamProducer.replaceTrack(track).then(function (newTrack) {
+				return _this6._webcamProducer.replaceTrack(track).then(function (newTrack) {
 					track.stop();
 
 					return newTrack;
 				});
 			}).then(function (newTrack) {
-				_this5._dispatch(stateActions.setProducerTrack(_this5._webcamProducer.id, newTrack));
+				_this6._dispatch(stateActions.setProducerTrack(_this6._webcamProducer.id, newTrack));
 
-				_this5._dispatch(stateActions.setWebcamInProgress(false));
+				_this6._dispatch(stateActions.setWebcamInProgress(false));
 			}).catch(function (error) {
 				logger.error('changeWebcam() failed: %o', error);
 
-				_this5._dispatch(stateActions.setWebcamInProgress(false));
+				_this6._dispatch(stateActions.setWebcamInProgress(false));
 			});
 		}
 	}, {
 		key: 'setWebcamResulution',
 		value: function setWebcamResulution(resolution) {
-			var _this6 = this;
+			var _this7 = this;
 
 			// if (!this._is_webcam_enabled) return 0
 			logger.debug('setWebcamResulution()');
@@ -373,12 +444,12 @@ var RoomClient = function () {
 			this._dispatch(stateActions.setWebcamInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				oldResolution = _this6._webcam.resolution;
+				oldResolution = _this7._webcam.resolution;
 				newResolution = resolution;
 
-				_this6._webcam.resolution = newResolution;
+				_this7._webcam.resolution = newResolution;
 			}).then(function () {
-				var _webcam2 = _this6._webcam,
+				var _webcam2 = _this7._webcam,
 				    device = _webcam2.device,
 				    resolution = _webcam2.resolution;
 
@@ -400,83 +471,7 @@ var RoomClient = function () {
 				// 		video : true
 				// 	});
 
-				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
-					deviceId: { exact: device.deviceId },
-					audio: false
-				}, VIDEO_CONSTRAINS[resolution], {
-					video: true
-				}));
-			}).then(function (stream) {
-				var track = stream.getVideoTracks()[0];
-
-				return _this6._webcamProducer.replaceTrack(track).then(function (newTrack) {
-					track.stop();
-
-					return newTrack;
-				});
-			}).then(function (newTrack) {
-				_this6._dispatch(stateActions.setProducerTrack(_this6._webcamProducer.id, newTrack));
-
-				_this6._dispatch(stateActions.setWebcamInProgress(false));
-			}).catch(function (error) {
-				logger.error('changeWebcamResolution() failed: %o', error);
-
-				_this6._dispatch(stateActions.setWebcamInProgress(false));
-
-				_this6._webcam.resolution = oldResolution;
-			});
-		}
-	}, {
-		key: 'changeWebcamResolution',
-		value: function changeWebcamResolution() {
-			var _this7 = this;
-
-			// if (!this._is_webcam_enabled) return 0
-			logger.debug('changeWebcamResolution()');
-
-			var oldResolution = void 0;
-			var newResolution = void 0;
-
-			this._dispatch(stateActions.setWebcamInProgress(true));
-
-			return _promise2.default.resolve().then(function () {
-				oldResolution = _this7._webcam.resolution;
-
-				switch (oldResolution) {
-					case 'qvga':
-						newResolution = 'vga';
-						break;
-					case 'vga':
-						newResolution = 'hd';
-						break;
-					case 'hd':
-						newResolution = 'qvga';
-						break;
-				}
-
-				_this7._webcam.resolution = newResolution;
-			}).then(function () {
-				var _webcam3 = _this7._webcam,
-				    device = _webcam3.device,
-				    resolution = _webcam3.resolution;
-
-
-				logger.debug('changeWebcamResolution() | calling getUserMedia()');
-
-				// return navigator.mediaDevices.getUserMedia(
-				// 	{
-				// 		video :
-				// 		{
-				// 			deviceId : { exact: device.deviceId },
-				// 			...VIDEO_CONSTRAINS[resolution]
-				// 		}
-				// 	});
-
-				// return navigator.mediaDevices.getUserMedia(
-				// 	{
-				// 		audio:false,
-				// 		video : true
-				// 	});
+				//return getScreenShare();
 
 				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
 					deviceId: { exact: device.deviceId },
@@ -505,23 +500,103 @@ var RoomClient = function () {
 			});
 		}
 	}, {
+		key: 'changeWebcamResolution',
+		value: function changeWebcamResolution() {
+			var _this8 = this;
+
+			// if (!this._is_webcam_enabled) return 0
+			logger.debug('changeWebcamResolution()');
+
+			var oldResolution = void 0;
+			var newResolution = void 0;
+
+			this._dispatch(stateActions.setWebcamInProgress(true));
+
+			return _promise2.default.resolve().then(function () {
+				oldResolution = _this8._webcam.resolution;
+
+				switch (oldResolution) {
+					case 'qvga':
+						newResolution = 'vga';
+						break;
+					case 'vga':
+						newResolution = 'hd';
+						break;
+					case 'hd':
+						newResolution = 'qvga';
+						break;
+				}
+
+				_this8._webcam.resolution = newResolution;
+			}).then(function () {
+				var _webcam3 = _this8._webcam,
+				    device = _webcam3.device,
+				    resolution = _webcam3.resolution;
+
+
+				logger.debug('changeWebcamResolution() | calling getUserMedia()');
+
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		video :
+				// 		{
+				// 			deviceId : { exact: device.deviceId },
+				// 			...VIDEO_CONSTRAINS[resolution]
+				// 		}
+				// 	});
+
+				// return navigator.mediaDevices.getUserMedia(
+				// 	{
+				// 		audio:false,
+				// 		video : true
+				// 	});
+
+				//return getScreenShare();
+
+				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+					deviceId: { exact: device.deviceId },
+					audio: false
+				}, VIDEO_CONSTRAINS[resolution], {
+					video: true
+				}));
+			}).then(function (stream) {
+				var track = stream.getVideoTracks()[0];
+
+				return _this8._webcamProducer.replaceTrack(track).then(function (newTrack) {
+					track.stop();
+
+					return newTrack;
+				});
+			}).then(function (newTrack) {
+				_this8._dispatch(stateActions.setProducerTrack(_this8._webcamProducer.id, newTrack));
+
+				_this8._dispatch(stateActions.setWebcamInProgress(false));
+			}).catch(function (error) {
+				logger.error('changeWebcamResolution() failed: %o', error);
+
+				_this8._dispatch(stateActions.setWebcamInProgress(false));
+
+				_this8._webcam.resolution = oldResolution;
+			});
+		}
+	}, {
 		key: 'enableAudioOnly',
 		value: function enableAudioOnly() {
-			var _this8 = this;
+			var _this9 = this;
 
 			logger.debug('enableAudioOnly()');
 
 			this._dispatch(stateActions.setAudioOnlyInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				if (_this8._webcamProducer) _this8._webcamProducer.close();
+				if (_this9._webcamProducer) _this9._webcamProducer.close();
 
 				var _iteratorNormalCompletion = true;
 				var _didIteratorError = false;
 				var _iteratorError = undefined;
 
 				try {
-					for (var _iterator = (0, _getIterator3.default)(_this8._room.peers), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+					for (var _iterator = (0, _getIterator3.default)(_this9._room.peers), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 						var peer = _step.value;
 						var _iteratorNormalCompletion2 = true;
 						var _didIteratorError2 = false;
@@ -565,33 +640,33 @@ var RoomClient = function () {
 					}
 				}
 
-				_this8._dispatch(stateActions.setAudioOnlyState(true));
+				_this9._dispatch(stateActions.setAudioOnlyState(true));
 
-				_this8._dispatch(stateActions.setAudioOnlyInProgress(false));
+				_this9._dispatch(stateActions.setAudioOnlyInProgress(false));
 			}).catch(function (error) {
 				logger.error('enableAudioOnly() failed: %o', error);
 
-				_this8._dispatch(stateActions.setAudioOnlyInProgress(false));
+				_this9._dispatch(stateActions.setAudioOnlyInProgress(false));
 			});
 		}
 	}, {
 		key: 'disableAudioOnly',
 		value: function disableAudioOnly() {
-			var _this9 = this;
+			var _this10 = this;
 
 			logger.debug('disableAudioOnly()');
 
 			this._dispatch(stateActions.setAudioOnlyInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				if (!_this9._webcamProducer && _this9._room.canSend('video')) return _this9._activateWebcam();
+				if (!_this10._webcamProducer && _this10._room.canSend('video')) return _this10._activateWebcam();
 			}).then(function () {
 				var _iteratorNormalCompletion3 = true;
 				var _didIteratorError3 = false;
 				var _iteratorError3 = undefined;
 
 				try {
-					for (var _iterator3 = (0, _getIterator3.default)(_this9._room.peers), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+					for (var _iterator3 = (0, _getIterator3.default)(_this10._room.peers), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 						var peer = _step3.value;
 						var _iteratorNormalCompletion4 = true;
 						var _didIteratorError4 = false;
@@ -635,41 +710,41 @@ var RoomClient = function () {
 					}
 				}
 
-				_this9._dispatch(stateActions.setAudioOnlyState(false));
+				_this10._dispatch(stateActions.setAudioOnlyState(false));
 
-				_this9._dispatch(stateActions.setAudioOnlyInProgress(false));
+				_this10._dispatch(stateActions.setAudioOnlyInProgress(false));
 			}).catch(function (error) {
 				logger.error('disableAudioOnly() failed: %o', error);
 
-				_this9._dispatch(stateActions.setAudioOnlyInProgress(false));
+				_this10._dispatch(stateActions.setAudioOnlyInProgress(false));
 			});
 		}
 	}, {
 		key: 'restartIce',
 		value: function restartIce() {
-			var _this10 = this;
+			var _this11 = this;
 
 			logger.debug('restartIce()');
 
 			this._dispatch(stateActions.setRestartIceInProgress(true));
 
 			return _promise2.default.resolve().then(function () {
-				_this10._room.restartIce();
+				_this11._room.restartIce();
 
 				// Make it artificially longer.
 				setTimeout(function () {
-					_this10._dispatch(stateActions.setRestartIceInProgress(false));
+					_this11._dispatch(stateActions.setRestartIceInProgress(false));
 				}, 500);
 			}).catch(function (error) {
 				logger.error('restartIce() failed: %o', error);
 
-				_this10._dispatch(stateActions.setRestartIceInProgress(false));
+				_this11._dispatch(stateActions.setRestartIceInProgress(false));
 			});
 		}
 	}, {
 		key: '_join',
 		value: function _join(_ref2) {
-			var _this11 = this;
+			var _this12 = this;
 
 			var displayName = _ref2.displayName,
 			    device = _ref2.device;
@@ -678,31 +753,31 @@ var RoomClient = function () {
 
 			this._protoo.on('open', function () {
 				logger.debug('protoo Peer "open" event');
-				if (_this11._room._state != "joined") _this11._joinRoom({ displayName: displayName, device: device });
+				if (_this12._room._state != "joined") _this12._joinRoom({ displayName: displayName, device: device });
 			});
 
 			this._protoo.on('disconnected', function () {
 				logger.warn('protoo Peer "disconnected" event');
 
-				_this11._dispatch(requestActions.notify({
+				_this12._dispatch(requestActions.notify({
 					type: 'error',
 					text: 'WebSocket disconnected'
 				}));
 
 				// Leave Room.
 				try {
-					_this11._room.remoteClose({ cause: 'protoo disconnected' });
+					_this12._room.remoteClose({ cause: 'protoo disconnected' });
 				} catch (error) {}
 
-				_this11._dispatch(stateActions.setRoomState('connecting'));
+				_this12._dispatch(stateActions.setRoomState('connecting'));
 			});
 
 			this._protoo.on('close', function () {
-				if (_this11._closed) return;
+				if (_this12._closed) return;
 
 				logger.warn('protoo Peer "close" event');
 
-				if (_this11._room._state != "joined") _this11.close();
+				if (_this12._room._state != "joined") _this12.close();
 			});
 
 			this._protoo.on('request', function (request, accept, reject) {
@@ -715,7 +790,7 @@ var RoomClient = function () {
 
 							var notification = request.data;
 
-							_this11._room.receiveNotification(notification);
+							_this12._room.receiveNotification(notification);
 
 							break;
 						}
@@ -727,7 +802,7 @@ var RoomClient = function () {
 							var peerName = request.data.peerName;
 
 
-							_this11._dispatch(stateActions.setRoomActiveSpeaker(peerName));
+							_this12._dispatch(stateActions.setRoomActiveSpeaker(peerName));
 
 							break;
 						}
@@ -744,7 +819,7 @@ var RoomClient = function () {
 
 							// NOTE: Hack, we shouldn't do this, but this is just a demo.
 
-							var peer = _this11._room.getPeerByName(_peerName);
+							var peer = _this12._room.getPeerByName(_peerName);
 
 							if (!peer) {
 								logger.error('peer not found');
@@ -754,9 +829,9 @@ var RoomClient = function () {
 
 							peer.appData.displayName = _displayName;
 
-							_this11._dispatch(stateActions.setPeerDisplayName(_displayName, _peerName));
+							_this12._dispatch(stateActions.setPeerDisplayName(_displayName, _peerName));
 
-							_this11._dispatch(requestActions.notify({
+							_this12._dispatch(requestActions.notify({
 								text: oldDisplayName + ' is now ' + _displayName
 							}));
 
@@ -775,7 +850,7 @@ var RoomClient = function () {
 	}, {
 		key: '_joinRoom',
 		value: function _joinRoom(_ref3) {
-			var _this12 = this;
+			var _this13 = this;
 
 			var displayName = _ref3.displayName,
 			    device = _ref3.device;
@@ -791,7 +866,7 @@ var RoomClient = function () {
 				if (originator === 'remote') {
 					logger.warn('mediasoup Peer/Room remotely closed [appData:%o]', appData);
 
-					_this12._dispatch(stateActions.setRoomState('closed'));
+					_this13._dispatch(stateActions.setRoomState('closed'));
 
 					return;
 				}
@@ -800,13 +875,13 @@ var RoomClient = function () {
 			this._room.on('request', function (request, callback, errback) {
 				logger.debug('sending mediasoup request [method:%s]:%o', request.method, request);
 
-				_this12._protoo.send('mediasoup-request', request).then(callback).catch(errback);
+				_this13._protoo.send('mediasoup-request', request).then(callback).catch(errback);
 			});
 
 			this._room.on('notify', function (notification) {
 				logger.debug('sending mediasoup notification [method:%s]:%o', notification.method, notification);
 
-				_this12._protoo.send('mediasoup-notification', notification).catch(function (error) {
+				_this13._protoo.send('mediasoup-notification', notification).catch(function (error) {
 					logger.warn('could not send mediasoup notification:%o', error);
 				});
 			});
@@ -814,63 +889,64 @@ var RoomClient = function () {
 			this._room.on('newpeer', function (peer) {
 				logger.debug('room "newpeer" event [name:"%s", peer:%o]', peer.name, peer);
 
-				_this12._handlePeer(peer);
+				_this13._handlePeer(peer);
 			});
 
 			this._room.join(this._peerName, { displayName: displayName, device: device }).then(function () {
 				// Create Transport for sending.
-				_this12._sendTransport = _this12._room.createTransport('send', { media: 'SEND_MIC_WEBCAM' });
+				_this13._sendTransport = _this13._room.createTransport('send', { media: 'SEND_MIC_WEBCAM' });
 
-				_this12._sendTransport.on('close', function (originator) {
+				_this13._sendTransport.on('close', function (originator) {
 					logger.debug('Transport "close" event [originator:%s]', originator);
 				});
 
 				// Create Transport for receiving.
-				_this12._recvTransport = _this12._room.createTransport('recv', { media: 'RECV' });
+				_this13._recvTransport = _this13._room.createTransport('recv', { media: 'RECV' });
 
-				_this12._recvTransport.on('close', function (originator) {
+				_this13._recvTransport.on('close', function (originator) {
 					logger.debug('receiving Transport "close" event [originator:%s]', originator);
 				});
 			}).then(function () {
 				// Set our media capabilities.
-				_this12._dispatch(stateActions.setMediaCapabilities({
-					canSendMic: _this12._room.canSend('audio'),
-					canSendWebcam: _this12._room.canSend('video')
+				_this13._dispatch(stateActions.setMediaCapabilities({
+					canSendMic: _this13._room.canSend('audio'),
+					canSendWebcam: _this13._room.canSend('video') //,
+					//canSendScreenShare : this._room.canSend('screen')
 				}));
 			}).then(function () {
 				// Don't produce if explicitely requested to not to do it.
-				if (!_this12._produce) return;
+				if (!_this13._produce) return;
 
 				// NOTE: Don't depend on this Promise to continue (so we don't do return).
 				_promise2.default.resolve()
 				// Add our mic.
 				.then(function () {
-					if (!_this12._room.canSend('audio')) return;
+					if (!_this13._room.canSend('audio')) return;
 
-					_this12._setMicProducer();
+					_this13._setMicProducer();
 					// 	.catch(() => {});
 				})
 				// Add our webcam (unless the cookie says no).
 				.then(function () {
-					if (!_this12._room.canSend('video')) return;
+					if (!_this13._room.canSend('video')) return;
 
 					// const devicesCookie = cookiesManager.getDevices();
 
 					// if (!devicesCookie || devicesCookie.webcamEnabled)
-					_this12._activateWebcam();
+					_this13._activateWebcam();
 				});
 			}).then(function () {
-				_this12._dispatch(stateActions.setRoomState('connected'));
+				_this13._dispatch(stateActions.setRoomState('connected'));
 
 				// Clean all the existing notifcations.
-				_this12._dispatch(stateActions.removeAllNotifications());
+				_this13._dispatch(stateActions.removeAllNotifications());
 
-				_this12._dispatch(requestActions.notify({
+				_this13._dispatch(requestActions.notify({
 					text: 'You are in the room',
 					timeout: 5000
 				}));
 
-				var peers = _this12._room.peers;
+				var peers = _this13._room.peers;
 
 				var _iteratorNormalCompletion5 = true;
 				var _didIteratorError5 = false;
@@ -880,7 +956,7 @@ var RoomClient = function () {
 					for (var _iterator5 = (0, _getIterator3.default)(peers), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
 						var peer = _step5.value;
 
-						_this12._handlePeer(peer, { notify: false });
+						_this13._handlePeer(peer, { notify: false });
 					}
 				} catch (err) {
 					_didIteratorError5 = true;
@@ -899,18 +975,18 @@ var RoomClient = function () {
 			}).catch(function (error) {
 				logger.error('_joinRoom() failed:%o', error);
 
-				_this12._dispatch(requestActions.notify({
+				_this13._dispatch(requestActions.notify({
 					type: 'error',
 					text: 'Could not join the room: ' + error.toString()
 				}));
 
-				_this12.close();
+				_this13.close();
 			});
 		}
 	}, {
 		key: '_setMicProducer',
 		value: function _setMicProducer() {
-			var _this13 = this;
+			var _this14 = this;
 
 			if (!this._room.canSend('audio')) {
 				return _promise2.default.reject(new Error('cannot send audio'));
@@ -929,22 +1005,22 @@ var RoomClient = function () {
 				}).then(function (stream) {
 					var track = stream.getAudioTracks()[0];
 
-					producer = _this13._room.createProducer(track, null, { source: 'mic' });
+					producer = _this14._room.createProducer(track, null, { source: 'mic' });
 
 					//disable audio if it's muted
-					if (!_this13._is_audio_enabled) {
+					if (!_this14._is_audio_enabled) {
 						producer.pause();
-						_this13.is_audio_initialized = true;
+						_this14.is_audio_initialized = true;
 					}
 					// No need to keep original track.
 					track.stop();
 
 					// Send it.
-					return producer.send(_this13._sendTransport);
+					return producer.send(_this14._sendTransport);
 				}).then(function () {
-					_this13._micProducer = producer;
+					_this14._micProducer = producer;
 
-					_this13._dispatch(stateActions.addProducer({
+					_this14._dispatch(stateActions.addProducer({
 						id: producer.id,
 						source: 'mic',
 						locallyPaused: producer.locallyPaused,
@@ -956,20 +1032,20 @@ var RoomClient = function () {
 					producer.on('close', function (originator) {
 						logger.debug('mic Producer "close" event [originator:%s]', originator);
 
-						_this13._micProducer = null;
-						_this13._dispatch(stateActions.removeProducer(producer.id));
+						_this14._micProducer = null;
+						_this14._dispatch(stateActions.removeProducer(producer.id));
 					});
 
 					producer.on('pause', function (originator) {
 						logger.debug('mic Producer "pause" event [originator:%s]', originator);
 
-						_this13._dispatch(stateActions.setProducerPaused(producer.id, originator));
+						_this14._dispatch(stateActions.setProducerPaused(producer.id, originator));
 					});
 
 					producer.on('resume', function (originator) {
 						logger.debug('mic Producer "resume" event [originator:%s]', originator);
 
-						_this13._dispatch(stateActions.setProducerResumed(producer.id, originator));
+						_this14._dispatch(stateActions.setProducerResumed(producer.id, originator));
 					});
 
 					producer.on('handled', function () {
@@ -984,7 +1060,7 @@ var RoomClient = function () {
 				}).catch(function (error) {
 					logger.error('_setMicProducer() failed:%o', error);
 
-					_this13._dispatch(requestActions.notify({
+					_this14._dispatch(requestActions.notify({
 						text: 'Mic producer failed: ' + error.name + ':' + error.message
 					}));
 
@@ -999,7 +1075,7 @@ var RoomClient = function () {
 	}, {
 		key: '_setWebcamProducer',
 		value: function _setWebcamProducer() {
-			var _this14 = this;
+			var _this15 = this;
 
 			if (!this._is_webcam_enabled) return 0;
 
@@ -1016,7 +1092,7 @@ var RoomClient = function () {
 			var producer = void 0;
 			if (!this._room._webcamProducer) {
 				return _promise2.default.resolve().then(function () {
-					var _webcam4 = _this14._webcam,
+					var _webcam4 = _this15._webcam,
 					    device = _webcam4.device,
 					    resolution = _webcam4.resolution;
 
@@ -1043,24 +1119,24 @@ var RoomClient = function () {
 				}).then(function (stream) {
 					var track = stream.getVideoTracks()[0];
 
-					producer = _this14._room.createProducer(track, { simulcast: _this14._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
+					producer = _this15._room.createProducer(track, { simulcast: _this15._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
 
 					// No need to keep original track.
 					track.stop();
 
 					// Send it.
-					return producer.send(_this14._sendTransport);
+					return producer.send(_this15._sendTransport);
 				}).then(function () {
-					_this14._webcamProducer = producer;
+					_this15._webcamProducer = producer;
 
-					var device = _this14._webcam.device;
+					var device = _this15._webcam.device;
 
 
-					_this14._dispatch(stateActions.addProducer({
+					_this15._dispatch(stateActions.addProducer({
 						id: producer.id,
 						source: 'webcam',
 						deviceLabel: device.label,
-						type: _this14._getWebcamType(device),
+						type: _this15._getWebcamType(device),
 						locallyPaused: producer.locallyPaused,
 						remotelyPaused: producer.remotelyPaused,
 						track: producer.track,
@@ -1070,20 +1146,20 @@ var RoomClient = function () {
 					producer.on('close', function (originator) {
 						logger.debug('webcam Producer "close" event [originator:%s]', originator);
 
-						_this14._webcamProducer = null;
-						_this14._dispatch(stateActions.removeProducer(producer.id));
+						_this15._webcamProducer = null;
+						_this15._dispatch(stateActions.removeProducer(producer.id));
 					});
 
 					producer.on('pause', function (originator) {
 						logger.debug('webcam Producer "pause" event [originator:%s]', originator);
 
-						_this14._dispatch(stateActions.setProducerPaused(producer.id, originator));
+						_this15._dispatch(stateActions.setProducerPaused(producer.id, originator));
 					});
 
 					producer.on('resume', function (originator) {
 						logger.debug('webcam Producer "resume" event [originator:%s]', originator);
 
-						_this14._dispatch(stateActions.setProducerResumed(producer.id, originator));
+						_this15._dispatch(stateActions.setProducerResumed(producer.id, originator));
 					});
 
 					producer.on('handled', function () {
@@ -1098,7 +1174,7 @@ var RoomClient = function () {
 				}).catch(function (error) {
 					logger.error('_setWebcamProducer() failed:%o', error);
 
-					_this14._dispatch(requestActions.notify({
+					_this15._dispatch(requestActions.notify({
 						text: 'Webcam producer failed: ' + error.name + ':' + error.message
 					}));
 
@@ -1111,9 +1187,136 @@ var RoomClient = function () {
 			}
 		}
 	}, {
+		key: '_changeScreenForShare',
+		value: function _changeScreenForShare() {
+			var _this16 = this;
+
+			logger.debug('_changeScreenForShare()');
+
+			this._is_screenshare_enabled = true;
+			this._dispatch(stateActions.setScreenShareInProgress(true));
+
+			return _promise2.default.resolve().then(function () {
+				logger.debug('_changeScreenForShare() | calling getUserMedia()');
+
+				return navigator.mediaDevices.getUserMedia({
+					audio: false,
+					video: {
+						mandatory: {
+							chromeMediaSource: 'desktop',
+							chromeMediaSourceId: _this16._screenStreamId,
+							maxWidth: 1280,
+							maxHeight: 720
+						}
+					}
+				});
+			}).then(function (stream) {
+				var track = stream.getVideoTracks()[0];
+
+				return _this16._screenShareProducer.replaceTrack(track).then(function (newTrack) {
+					track.stop();
+
+					return newTrack;
+				});
+			}).then(function (newTrack) {
+				_this16._dispatch(stateActions.setProducerTrack(_this16._screenShareProducer.id, newTrack));
+
+				_this16._dispatch(stateActions.setScreenShareInProgress(false));
+			}).catch(function (error) {
+				logger.error('_changeScreenForShare() failed: %o', error);
+
+				_this16._dispatch(stateActions.setScreenShareInProgress(false));
+			});
+		}
+	}, {
+		key: '_setScreenShareProducer',
+		value: function _setScreenShareProducer() {
+			var _this17 = this;
+
+			if (!this._is_screenshare_enabled) return 0;
+
+			if (this._screenShareProducer) {
+				return _promise2.default.reject(new Error('screenshare Producer already exists'));
+			}
+
+			var producer = void 0;
+			return _promise2.default.resolve().then(function () {
+				logger.debug('_setScreenShareProducer() | calling getUserMedia()');
+
+				return navigator.mediaDevices.getUserMedia({
+					audio: false,
+					video: {
+						mandatory: {
+							chromeMediaSource: 'desktop',
+							chromeMediaSourceId: _this17._screenStreamId,
+							maxWidth: 1280,
+							maxHeight: 720
+						}
+					}
+				});
+			}).then(function (stream) {
+				var track = stream.getVideoTracks()[0];
+
+				producer = _this17._room.createProducer(track, { simulcast: _this17._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
+				track.stop();
+
+				return producer.send(_this17._sendTransport);
+			}).then(function () {
+				_this17._screenShareProducer = producer;
+
+				_this17._dispatch(stateActions.addProducer({
+					id: producer.id,
+					source: 'screen',
+					locallyPaused: producer.locallyPaused,
+					remotelyPaused: producer.remotelyPaused,
+					track: producer.track,
+					codec: producer.rtpParameters.codecs[0].name
+				}));
+
+				producer.on('close', function (originator) {
+					logger.debug('screenshare Producer "close" event [originator:%s]', originator);
+
+					_this17._screenShareProducer = null;
+					_this17._dispatch(stateActions.removeProducer(producer.id));
+				});
+
+				producer.on('pause', function (originator) {
+					logger.debug('screenshare Producer "pause" event [originator:%s]', originator);
+
+					_this17._dispatch(stateActions.setProducerPaused(producer.id, originator));
+				});
+
+				producer.on('resume', function (originator) {
+					logger.debug('screenshare Producer "resume" event [originator:%s]', originator);
+
+					_this17._dispatch(stateActions.setProducerResumed(producer.id, originator));
+				});
+
+				producer.on('handled', function () {
+					logger.debug('screenshare Producer "handled" event');
+				});
+
+				producer.on('unhandled', function () {
+					logger.debug('screenshare Producer "unhandled" event');
+				});
+			}).then(function () {
+				logger.debug('_setScreenShareProducer() succeeded');
+			}).catch(function (error) {
+				logger.error('_setScreenShareProducer() failed:%o', error);
+
+				_this17._dispatch(requestActions.notify({
+					text: 'screenshare Producer failed: ' + error.name + ':' + error.message
+				}));
+
+				if (producer) producer.close();
+
+				throw error;
+			});
+		}
+	}, {
 		key: '_updateWebcams',
 		value: function _updateWebcams() {
-			var _this15 = this;
+			var _this18 = this;
 
 			logger.debug('_updateWebcams()');
 
@@ -1135,7 +1338,7 @@ var RoomClient = function () {
 
 						if (device.kind !== 'videoinput') continue;
 
-						_this15._webcams.set(device.deviceId, device);
+						_this18._webcams.set(device.deviceId, device);
 					}
 				} catch (err) {
 					_didIteratorError6 = true;
@@ -1152,15 +1355,15 @@ var RoomClient = function () {
 					}
 				}
 			}).then(function () {
-				var array = (0, _from2.default)(_this15._webcams.values());
+				var array = (0, _from2.default)(_this18._webcams.values());
 				var len = array.length;
-				var currentWebcamId = _this15._webcam.device ? _this15._webcam.device.deviceId : undefined;
+				var currentWebcamId = _this18._webcam.device ? _this18._webcam.device.deviceId : undefined;
 
 				logger.debug('_updateWebcams() [webcams:%o]', array);
 
-				if (len === 0) _this15._webcam.device = null;else if (!_this15._webcams.has(currentWebcamId)) _this15._webcam.device = array[0];
+				if (len === 0) _this18._webcam.device = null;else if (!_this18._webcams.has(currentWebcamId)) _this18._webcam.device = array[0];
 
-				_this15._dispatch(stateActions.setCanChangeWebcam(_this15._webcams.size >= 2));
+				_this18._dispatch(stateActions.setCanChangeWebcam(_this18._webcams.size >= 2));
 			});
 		}
 	}, {
@@ -1179,7 +1382,7 @@ var RoomClient = function () {
 	}, {
 		key: '_handlePeer',
 		value: function _handlePeer(peer) {
-			var _this16 = this;
+			var _this19 = this;
 
 			var _ref4 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
 			    _ref4$notify = _ref4.notify,
@@ -1228,10 +1431,10 @@ var RoomClient = function () {
 			peer.on('close', function (originator) {
 				logger.debug('peer "close" event [name:"%s", originator:%s]', peer.name, originator);
 
-				_this16._dispatch(stateActions.removePeer(peer.name));
+				_this19._dispatch(stateActions.removePeer(peer.name));
 
-				if (_this16._room.joined) {
-					_this16._dispatch(requestActions.notify({
+				if (_this19._room.joined) {
+					_this19._dispatch(requestActions.notify({
 						text: peer.appData.displayName + ' left the room'
 					}));
 				}
@@ -1240,13 +1443,13 @@ var RoomClient = function () {
 			peer.on('newconsumer', function (consumer) {
 				logger.debug('peer "newconsumer" event [name:"%s", id:%s, consumer:%o]', peer.name, consumer.id, consumer);
 
-				_this16._handleConsumer(consumer);
+				_this19._handleConsumer(consumer);
 			});
 		}
 	}, {
 		key: '_handleConsumer',
 		value: function _handleConsumer(consumer) {
-			var _this17 = this;
+			var _this20 = this;
 
 			var codec = consumer.rtpParameters.codecs[0];
 
@@ -1264,26 +1467,26 @@ var RoomClient = function () {
 			consumer.on('close', function (originator) {
 				logger.debug('consumer "close" event [id:%s, originator:%s, consumer:%o]', consumer.id, originator, consumer);
 
-				_this17._dispatch(stateActions.removeConsumer(consumer.id, consumer.peer.name));
+				_this20._dispatch(stateActions.removeConsumer(consumer.id, consumer.peer.name));
 			});
 
 			consumer.on('pause', function (originator) {
 				logger.debug('consumer "pause" event [id:%s, originator:%s, consumer:%o]', consumer.id, originator, consumer);
 
-				_this17._dispatch(stateActions.setConsumerPaused(consumer.id, originator));
+				_this20._dispatch(stateActions.setConsumerPaused(consumer.id, originator));
 			});
 
 			consumer.on('resume', function (originator) {
 				logger.debug('consumer "resume" event [id:%s, originator:%s, consumer:%o]', consumer.id, originator, consumer);
 
-				_this17._dispatch(stateActions.setConsumerResumed(consumer.id, originator));
+				_this20._dispatch(stateActions.setConsumerResumed(consumer.id, originator));
 			});
 
 			consumer.on('effectiveprofilechange', function (profile) {
 				consumer.setPreferredProfile(profile);
 				logger.debug('consumer "effectiveprofilechange" event [id:%s, consumer:%o, profile:%s]', consumer.id, consumer, profile);
 
-				_this17._dispatch(stateActions.setConsumerEffectiveProfile(consumer.id, profile));
+				_this20._dispatch(stateActions.setConsumerEffectiveProfile(consumer.id, profile));
 			});
 
 			// Receive the consumer (if we can).
@@ -1292,11 +1495,92 @@ var RoomClient = function () {
 				if (consumer.kind === 'video' && this._getState().me.audioOnly) consumer.pause('audio-only-mode');
 
 				consumer.receive(this._recvTransport).then(function (track) {
-					_this17._dispatch(stateActions.setConsumerTrack(consumer.id, track));
+					_this20._dispatch(stateActions.setConsumerTrack(consumer.id, track));
 				}).catch(function (error) {
 					logger.error('unexpected error while receiving a new Consumer:%o', error);
 				});
 			}
+		}
+	}, {
+		key: 'changeRecordSource',
+		value: function changeRecordSource() {
+			//TODO: переключение источника ввода видео
+		}
+	}, {
+		key: 'record',
+		value: function record(interval) {
+			var _this21 = this;
+
+			var dataType = { VIDEO: 'video', AUDIO: 'audio' };
+
+			console.log("Starting Media Recorder...");
+			var videoStream = new MediaStream(),
+			    audioStream = new MediaStream();
+
+			if (this._screenShareProducer) {
+				videoStream.addTrack(this._screenShareProducer.track);
+			} else if (this._webcamProducer) {
+				videoStream.addTrack(this._webcamProducer.track);
+			}
+			if (this._micProducer) {
+				audioStream.addTrack(this._micProducer.track);
+			}
+
+			var videoOptions = { mimeType: 'video/webm; codecs=vp8' };
+			var audioOptions = { mimeType: 'audio/ogg; codecs=opus' };
+
+			this._videoRecorder = new _msr2.default(videoStream, videoOptions);
+			this._audioRecorder = new _msr2.default(audioStream, audioOptions);
+
+			this._videoRecorder.ondataavailable = function (blob) {
+				uploadBlob(_this21._videoRecorder, blob, dataType.VIDEO);
+			};
+
+			this._audioRecorder.ondataavailable = function (blob) {
+				uploadBlob(_this21._audioRecorder, blob, dataType.AUDIO);
+			};
+
+			_axios2.default.get('http://127.0.0.1:5000/begin').then(function (res) {
+				console.log('Server is ready, start sending data...');
+
+				_this21._recordState = 'recording';
+				_this21._videoRecorder.start(interval);
+				_this21._audioRecorder.start(interval);
+			});
+
+			function uploadBlob(recorder, blob, datatype) {
+				var data = new FormData();
+				data.append('name', 'msr-' + new Date().toISOString().replace(/:|\./g, '-') + '.webm');
+				data.append('file', blob);
+				data.append('datatype', datatype);
+
+				var url = 'http://127.0.0.1:5000/data-' + datatype;
+				_axios2.default.post(url, data).then(function (res) {
+					console.log(datatype + '-data blob sent.');
+				}).catch(function (err) {
+					console.log('error:' + err);
+				});
+			}
+		}
+	}, {
+		key: 'stopRecord',
+		value: function stopRecord() {
+			console.log('Deactivating recorder...');
+			this._recordState = 'inactive';
+			this._audioRecorder.stop();
+			this._videoRecorder.stop();
+			setTimeout(this.finishRecord, 500);
+		}
+	}, {
+		key: 'finishRecord',
+		value: function finishRecord() {
+			this._recordState = 'inactive';
+			this._videoRecorder = null;
+			this._audioRecorder = null;
+			_axios2.default.get('http://127.0.0.1:5000/end').then(function (res) {
+				console.log('Data transfer complete');
+				return 5;
+			});
 		}
 	}]);
 	return RoomClient;
