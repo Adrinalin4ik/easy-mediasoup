@@ -32,9 +32,9 @@ var _createClass2 = require('babel-runtime/helpers/createClass');
 
 var _createClass3 = _interopRequireDefault(_createClass2);
 
-var _protooClient = require('protoo-client');
+var _lib = require('../client/lib');
 
-var _protooClient2 = _interopRequireDefault(_protooClient);
+var _lib2 = _interopRequireDefault(_lib);
 
 var _mediasoupClient = require('mediasoup-client');
 
@@ -100,7 +100,7 @@ var RoomClient = function () {
 
 		logger.debug('constructor() [roomId:"%s", peerName:"%s", displayName:"%s", device:%s]', roomId, peerName, displayName, device.flag);
 		var protooUrl = (0, _urlFactory.getProtooUrl)(media_server_wss, peerName, roomId);
-		var protooTransport = new _protooClient2.default.WebSocketTransport(protooUrl);
+		var protooTransport = new _lib2.default.WebSocketTransport(protooUrl);
 
 		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS;
 		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS;
@@ -130,7 +130,7 @@ var RoomClient = function () {
 		this._peerName = peerName;
 
 		// protoo-client Peer instance.
-		this._protoo = new _protooClient2.default.Peer(protooTransport);
+		this._protoo = new _lib2.default.Peer(protooTransport);
 		// set turn servers
 		ROOM_OPTIONS.turnServers = turnservers;
 		// mediasoup-client Room instance.

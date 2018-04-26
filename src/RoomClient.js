@@ -1,4 +1,4 @@
-import protooClient from 'protoo-client';
+import protooClient from '../client/lib';
 import * as mediasoupClient from 'mediasoup-client';
 import Logger from './Logger';
 import { getProtooUrl } from './urlFactory';
