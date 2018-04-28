@@ -58,7 +58,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.1.3');
+	console.warn('Easy mediasoup v1.1.5');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -97,6 +97,7 @@ var Init = exports.Init = function Init(config) {
 	args.video_constrains = config.video_constrains || [];
 	args.simulcast_options = config.simulcast_options || [];
 	args.initially_muted = config.initially_muted || false;
+	args.produce = config.produce;
 
 	// if (!roomId)
 	// {

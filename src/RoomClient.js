@@ -48,7 +48,6 @@ export default class RoomClient
 		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS
 
 		
-
 		this.initially_muted =  args.initially_muted;
 		this.is_audio_initialized = false;
 
@@ -59,8 +58,8 @@ export default class RoomClient
 		this._closed = false;
 
 		// Whether we should produce.
-		this._produce = produce;
-
+		this._produce = args.produce;
+		
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
 
@@ -810,11 +809,9 @@ export default class RoomClient
 						canSendWebcam : this._room.canSend('video')
 					}));
 			})
-			.then(() =>
-			{
+			.then(() => {
 				// Don't produce if explicitely requested to not to do it.
-				if (!this._produce)
-					return;
+				if (!this._produce) return 0;
 
 				// NOTE: Don't depend on this Promise to continue (so we don't do return).
 				Promise.resolve()
@@ -839,8 +836,7 @@ export default class RoomClient
 							this._activateWebcam();
 					})
 			})
-			.then(() =>
-			{
+			.then(() => {
 				this._dispatch(stateActions.setRoomState('connected'));
 
 				// Clean all the existing notifcations.
@@ -875,7 +871,7 @@ export default class RoomClient
 	
 	_setMicProducer()
 	{	
-
+		if (!this._produce) return 0;
 		if (!this._room.canSend('audio'))
 		{
 			return Promise.reject(
@@ -990,6 +986,7 @@ export default class RoomClient
 
 	_setWebcamProducer()
 	{
+		if (!this._produce) return 0;
 		if (!this._is_webcam_enabled) return 0
 
 		// if (!this._room.canSend('video'))

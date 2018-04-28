@@ -115,7 +115,7 @@ var RoomClient = function () {
 		this._closed = false;
 
 		// Whether we should produce.
-		this._produce = produce;
+		this._produce = args.produce;
 
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
@@ -839,7 +839,7 @@ var RoomClient = function () {
 				}));
 			}).then(function () {
 				// Don't produce if explicitely requested to not to do it.
-				if (!_this12._produce) return;
+				if (!_this12._produce) return 0;
 
 				// NOTE: Don't depend on this Promise to continue (so we don't do return).
 				_promise2.default.resolve()
@@ -912,6 +912,7 @@ var RoomClient = function () {
 		value: function _setMicProducer() {
 			var _this13 = this;
 
+			if (!this._produce) return 0;
 			if (!this._room.canSend('audio')) {
 				return _promise2.default.reject(new Error('cannot send audio'));
 			}
@@ -1001,6 +1002,7 @@ var RoomClient = function () {
 		value: function _setWebcamProducer() {
 			var _this14 = this;
 
+			if (!this._produce) return 0;
 			if (!this._is_webcam_enabled) return 0;
 
 			// if (!this._room.canSend('video'))
