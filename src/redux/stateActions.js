@@ -126,6 +126,14 @@ export const setWebcamInProgress = (flag) =>
 	};
 };
 
+export const setMicInProgress = (flag) =>
+{
+	return {
+		type    : 'SET_MIC_IN_PROGRESS',
+		payload : { flag }
+	};
+};
+
 export const setScreenShareInProgress = (flag) =>
 {
 	return {

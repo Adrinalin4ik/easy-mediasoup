@@ -83,6 +83,9 @@ export default class RoomClient
 		ROOM_OPTIONS.turnServers = turnservers
 		// mediasoup-client Room instance.
 		this._room = new mediasoupClient.Room(ROOM_OPTIONS);
+
+		//Инициализируем хранилище данных браузера пользователя
+		this._storage = window.localStorage;
 		
 		// Transport for sending.
 		this._sendTransport = null;
@@ -107,6 +110,9 @@ export default class RoomClient
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
 		this._webcams = new Map();
+
+		//Список всех аудио-устройств ввода пользователя
+		this._mics = new Map();
 		// Local Webcam. Object with:
 		// - {MediaDeviceInfo} [device]
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
@@ -115,10 +121,12 @@ export default class RoomClient
 			device     : null,
 			resolution : 'hd'
 		};
+		//Текущий микрофон пользователя
+		this._mic = null;
 
 		//_mediaRecorder = null;
 
-		this._tmp;
+		this._recordWorker;
 
 		this._join({ displayName, device });
 	}
@@ -246,6 +254,38 @@ export default class RoomClient
 			});
 	}
 
+	//Запускаем микрофон
+	_activateMic(){
+		logger.debug('activateMic()');
+		//console.log('inside activate mic')
+
+		this._dispatch(
+			stateActions.setMicInProgress(true));
+
+		return Promise.resolve()
+			.then(() =>
+			{
+				return this._updateMics();
+			})
+			.then(() =>
+			{
+				return this._setMicProducer();
+			})
+			.then(() =>
+			{
+				this._dispatch(
+					stateActions.setMicInProgress(false));
+			})
+			.catch((error) =>
+			{
+				logger.error('activateWebcam() | failed: %o', error);
+
+				this._dispatch(
+					stateActions.setMicInProgress(false));
+			});
+	}
+
+	//Запускаем вебкамеру
 	_activateWebcam(){
 		logger.debug('activateWebcam()');
 
@@ -888,7 +928,7 @@ export default class RoomClient
 						if (!this._room.canSend('audio'))
 							return;
 
-						this._setMicProducer()
+						this._activateMic();
 						// 	.catch(() => {});
 					})
 					// Add our webcam (unless the cookie says no).
@@ -900,7 +940,7 @@ export default class RoomClient
 						// const devicesCookie = cookiesManager.getDevices();
 
 						// if (!devicesCookie || devicesCookie.webcamEnabled)
-							this._activateWebcam();
+						this._activateWebcam();
 					})
 			})
 			.then(() =>
@@ -939,6 +979,8 @@ export default class RoomClient
 	
 	_setMicProducer()
 	{	
+		//console.log('inside mic producer');
+		//console.log(this._mic.deviceId);
 
 		if (!this._room.canSend('audio'))
 		{
@@ -959,7 +1001,12 @@ export default class RoomClient
 				{
 					logger.debug('_setMicProducer() | calling getUserMedia()');
 
-					return navigator.mediaDevices.getUserMedia({ audio: true, video:false });
+					return navigator.mediaDevices.getUserMedia({
+						audio: {
+							deviceId: this._mic.deviceId ? {exact: this._mic.deviceId} : undefined
+						},
+						video:false
+					});
 				})
 				.then((stream) =>
 				{
@@ -1344,6 +1391,99 @@ export default class RoomClient
 				});
 	}
 
+	//Метод принимает MediaDeviceInfo и запоминает его в клиенте в зависимости от типа устройства
+	setDevice(device){
+		if(!device){
+			return Promise.reject(
+				new Error('setDevice error: no device provided!')
+			);
+		}
+
+		if(device.kind === 'audioinput'){
+			return Promise.resolve()
+				.then( () => {
+					this._dispatch(
+						stateActions.setMicInProgress(true));
+				})
+				.then( () => {
+					this._mic = device;
+
+
+					return navigator.mediaDevices.getUserMedia({
+						audio: {
+							deviceId: this._mic.deviceId ? {exact: this._mic.deviceId} : undefined
+						},
+						video:false
+					});
+				})
+				.then( (stream) => {
+					const track = stream.getAudioTracks()[0];
+
+					return this._micProducer.replaceTrack(track)
+					.then((newTrack) =>
+					{
+						track.stop();
+
+						return newTrack;
+					});
+				})
+				.then( (newTrack) => {
+					this._dispatch(
+						stateActions.setProducerTrack(this._micProducer.id, newTrack));
+
+					this._dispatch(
+						stateActions.setMicInProgress(false));
+				})
+				.catch( (err) => {
+					console.log(err);
+				});
+		}
+
+		if(device.kind === 'videoinput'){
+			return Promise.resolve()
+				.then( () => {
+					this._dispatch(
+						stateActions.setWebcamInProgress(true));
+				})
+				.then( () => {
+					this._webcam.device = device;
+
+					return navigator.mediaDevices.getUserMedia(
+					{
+						deviceId : this._webcam.device.deviceId ? {exact: this._webcam.webcam.deviceId} : undefined,
+						audio : false,
+						...VIDEO_CONSTRAINS[resolution],
+						video : true
+					});
+				})
+				.then( (stream) => {
+					const track = stream.getVideoTracks()[0];
+
+					return this._webcamProducer.replaceTrack(track)
+					.then((newTrack) =>
+					{
+						track.stop();
+
+						return newTrack;
+					});
+				})
+				.then( (newTrack) => {
+					this._dispatch(
+						stateActions.setProducerTrack(this._webcamProducer.id, newTrack));
+
+					this._dispatch(
+						stateActions.setWebcamInProgress(false));
+				})
+				.catch( (err) => {
+					console.log(err);
+				});
+		}
+
+		return Promise.reject(
+			new Error('setDevice error: wrong type of device!')
+		);
+	}
+
 	_updateWebcams()
 	{
 		logger.debug('_updateWebcams()');
@@ -1370,7 +1510,15 @@ export default class RoomClient
 			})
 			.then(() =>
 			{
+				const storageWebcam = this._storage.getItem('training-space-video-output-device-id');
 				const array = Array.from(this._webcams.values());
+
+				if(this._webcams.has(storageWebcam)){
+					console.log('Обнаружена камера с ID:' + storageWebcam + " в localStorage");
+					this._webcam.device = this._webcams.get(storageWebcam);
+					return;
+				}
+
 				const len = array.length;
 				const currentWebcamId =
 					this._webcam.device ? this._webcam.device.deviceId : undefined;
@@ -1384,6 +1532,58 @@ export default class RoomClient
 
 				this._dispatch(
 					stateActions.setCanChangeWebcam(this._webcams.size >= 2));
+			});
+	}
+
+	_updateMics(){
+		logger.debug('_updateMics()');
+		//console.log('inside updateMics()');
+
+		// Reset the list.
+		this._mics = new Map();
+
+		return Promise.resolve()
+			.then(() =>
+			{
+				logger.debug('_updateMics() | calling enumerateDevices()');
+
+				return navigator.mediaDevices.enumerateDevices();
+			})
+			.then((devices) =>
+			{
+				for (const device of devices)
+				{
+					if (device.kind !== 'audioinput')
+						continue;
+
+					this._mics.set(device.deviceId, device);
+				}
+			})
+			.then(() =>
+			{
+				const storageMic = this._storage.getItem('training-space-audio-input-device-id');
+				const array = Array.from(this._mics.values());
+
+				if(this._mics.has(storageMic)){
+					//console.log('Обнаружен микрофон с ID:' + storageMic + " в localStorage");
+					this._mic = this._mics.get(storageMic);
+					return;
+				}
+				
+				const len = array.length;
+				const currentMicId =
+					this._mic ? this._mic.deviceId : undefined;
+
+				logger.debug('_updateMics() [microphones:%o]', array);
+
+				if (len === 0)
+					this._mic = null;
+				else if (!this._mics.has(currentMicId))
+					this._mic = array[0];
+
+				// this._dispatch(
+				// 	stateActions.setCanChangeWebcam(this._mics.size > 1)
+				// );
 			});
 	}
 
@@ -1535,67 +1735,94 @@ export default class RoomClient
 	}
 
 	record(interval){
-		const dataType = { VIDEO : 'video', AUDIO : 'audio' };
+		let worker = this._recordWorker = new Worker('../test/recordWork.js');
 
-		console.log("Starting Media Recorder...");
-		let videoStream = new MediaStream(),
-			audioStream = new MediaStream();
+		let params = {
+			interval: interval,
+			axios: axios
+		};
 
-		if(this._screenShareProducer){
-			videoStream.addTrack(this._screenShareProducer.track);
-		} else if(this._webcamProducer){
-			videoStream.addTrack(this._webcamProducer.track);
-		}
-		if(this._micProducer){
-			audioStream.addTrack(this._micProducer.track);
-		}
+		// if(this._screenShareProducer){
+		// 	params.videoTrack = this._screenShareProducer.track;
+		// } else if(this._webcamProducer){
+		// 	params.videoTrack = this._webcamProducer.track;
+		// }
+		// if(this._micProducer){
+		// 	params.audio = Trackthis._micProducer.track;
+		// }
 
-		let videoOptions = { mimeType : 'video/webm; codecs=vp8'};
-		let audioOptions = { mimeType : 'audio/ogg; codecs=opus'}
+		worker.postMessage({'cmd': 'init', 'params': params});
 
-		this._videoRecorder = new MediaStreamRecorder(videoStream, videoOptions);
-		this._audioRecorder = new MediaStreamRecorder(audioStream, audioOptions);
-
-		this._videoRecorder.ondataavailable = (blob) => {
-			uploadBlob(this._videoRecorder, blob, dataType.VIDEO);
-		}
-
-		this._audioRecorder.ondataavailable = (blob) => {
-			uploadBlob(this._audioRecorder, blob, dataType.AUDIO);
-		}
-
-		axios.get('http://127.0.0.1:5000/begin')
-		.then( (res) => {
-			console.log('Server is ready, start sending data...');
-
-			this._recordState = 'recording';
-			this._videoRecorder.start(interval);
-			this._audioRecorder.start(interval);
+		worker.addEventListener('message', (e) => {
+			console.log(e.data);
 		});
 
-		function uploadBlob(recorder, blob, datatype) {
-	     	let data = new FormData();
-	     	data.append('name', 'msr-' + (new Date).toISOString().replace(/:|\./g, '-') + '.webm');
-	        data.append('file', blob);
-	        data.append('datatype', datatype);
+		// const dataType = { VIDEO : 'video', AUDIO : 'audio' };
 
-	        let url = 'http://127.0.0.1:5000/data-' + datatype;
-	        axios.post(url, data)
-	        .then( (res) => {
-				console.log(datatype + '-data blob sent.');
-			})
-			.catch( (err) => {
-				console.log('error:' + err);
-			});
-		}
+		// console.log("Starting Media Recorder...");
+		// let videoStream = new MediaStream(),
+		// 	audioStream = new MediaStream();
+
+		// if(this._screenShareProducer){
+		// 	videoStream.addTrack(this._screenShareProducer.track);
+		// } else if(this._webcamProducer){
+		// 	videoStream.addTrack(this._webcamProducer.track);
+		// }
+		// if(this._micProducer){
+		// 	audioStream.addTrack(this._micProducer.track);
+		// }
+
+		// let videoOptions = { mimeType : 'video/webcam; codecs=vp8'};
+		// let audioOptions = { mimeType : 'audio/ogg; codecs=opus'}
+
+		// //this._videoRecorder = new MediaStreamRecorder(videoStream, videoOptions);
+		// //this._audioRecorder = new MediaStreamRecorder(audioStream, audioOptions);
+
+		// this._videoRecorder = new RecordRtc(videoStream, videoOptions);
+		// this._audioRecorder = new RecordRtc(audioStream, audioOptions);
+
+		// this._videoRecorder.ondataavailable = (blob) => {
+		// 	uploadBlob(this._videoRecorder, blob, dataType.VIDEO);
+		// }
+
+		// this._audioRecorder.ondataavailable = (blob) => {
+		// 	uploadBlob(this._audioRecorder, blob, dataType.AUDIO);
+		// }
+
+		// axios.get('http://127.0.0.1:5000/begin')
+		// .then( (res) => {
+		// 	console.log('Server is ready, start sending data...');
+
+		// 	this._recordState = 'recording';
+		// 	this._videoRecorder.startRecording();
+		// 	this._audioRecorder.startRecording();
+		// });
+
+		// function uploadBlob(recorder, blob, datatype, index) {
+	 //     	let data = new FormData();
+	 //     	data.append('name', this._room.name + '-video-' + index);
+	 //        data.append('file', blob);
+	 //        data.append('datatype', datatype);
+
+	 //        let url = 'http://127.0.0.1:5000/data-' + datatype;
+	 //        axios.post(url, data)
+	 //        .then( (res) => {
+		// 		console.log(datatype + '-data blob sent.');
+		// 	})
+		// 	.catch( (err) => {
+		// 		console.log('error:' + err);
+		// 	});
+		// }
 	}
 
 	stopRecord() {
-		console.log('Deactivating recorder...');
-		this._recordState = 'inactive';
-		this._audioRecorder.stop();
-		this._videoRecorder.stop();
-		setTimeout(this.finishRecord, 500);
+		this._recordWorker.postMessage({'cmd': 'stop'});
+
+		// console.log('Deactivating recorder...');
+		// this._recordState = 'inactive';
+		// this._audioRecorder.stop();
+		// this._videoRecorder.stop();
+		// setTimeout(this.finishRecord, 500);
 	}
 
 	finishRecord(){

@@ -124,6 +124,13 @@ var setWebcamInProgress = exports.setWebcamInProgress = function setWebcamInProg
 	};
 };
 
+var setMicInProgress = exports.setMicInProgress = function setMicInProgress(flag) {
+	return {
+		type: 'SET_MIC_IN_PROGRESS',
+		payload: { flag: flag }
+	};
+};
+
 var setScreenShareInProgress = exports.setScreenShareInProgress = function setScreenShareInProgress(flag) {
 	return {
 		type: 'SET_SCREENSHARE_IN_PROGRESS',
