@@ -62,6 +62,10 @@ var _axios = require('axios');
 
 var _axios2 = _interopRequireDefault(_axios);
 
+var _recordrtc = require('recordrtc');
+
+var _recordrtc2 = _interopRequireDefault(_recordrtc);
+
 var _msr = require('msr');
 
 var _msr2 = _interopRequireDefault(_msr);
@@ -70,9 +74,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var logger = new _Logger2.default('RoomClient');
 // import * as cookiesManager from './cookiesManager';
-
+var logger = new _Logger2.default('RoomClient');
 
 var ROOM_OPTIONS = {
 	requestTimeout: 10000,
@@ -1688,97 +1691,88 @@ var RoomClient = function () {
 		}
 	}, {
 		key: 'changeRecordSource',
-		value: function changeRecordSource() {}
-		//TODO: переключение источника ввода видео
+		value: function changeRecordSource() {
+			//TODO: переключение источника ввода видео
+		}
+	}, {
+		key: 'record',
+		value: function record(interval) {
+			var _this24 = this;
 
+			var dataType = { VIDEO: 'video', AUDIO: 'audio' };
 
-		// record(interval){
-		// if(this._screenShareProducer){
-		// 	params.videoTrack = this._screenShareProducer.track;
-		// } else if(this._webcamProducer){
-		// 	params.videoTrack = this._webcamProducer.track;
-		// }
-		// if(this._micProducer){
-		// 	params.audio = Trackthis._micProducer.track;
-		// }
+			console.log("Starting Media Recorder...");
+			var videoStream = new MediaStream(),
+			    audioStream = new MediaStream();
 
-		// const dataType = { VIDEO : 'video', AUDIO : 'audio' };
+			if (this._screenShareProducer) {
+				videoStream.addTrack(this._screenShareProducer.track);
+			} else if (this._webcamProducer) {
+				videoStream.addTrack(this._webcamProducer.track);
+			}
+			if (this._micProducer) {
+				audioStream.addTrack(this._micProducer.track);
+			}
 
-		// console.log("Starting Media Recorder...");
-		// let videoStream = new MediaStream(),
-		// 	audioStream = new MediaStream();
+			var videoOptions = { mimeType: 'video/webcam; codecs=vp8' };
+			var audioOptions = { mimeType: 'audio/ogg; codecs=opus' };
 
-		// if(this._screenShareProducer){
-		// 	videoStream.addTrack(this._screenShareProducer.track);
-		// } else if(this._webcamProducer){
-		// 	videoStream.addTrack(this._webcamProducer.track);
-		// }
-		// if(this._micProducer){
-		// 	audioStream.addTrack(this._micProducer.track);
-		// }
+			this._videoRecorder = new _msr2.default(videoStream, videoOptions);
+			this._audioRecorder = new _msr2.default(audioStream, audioOptions);
 
-		// let videoOptions = { mimeType : 'video/webcam; codecs=vp8'};
-		// let audioOptions = { mimeType : 'audio/ogg; codecs=opus'}
+			// this._videoRecorder = new RecordRtc(videoStream, videoOptions);
+			// this._audioRecorder = new RecordRtc(audioStream, audioOptions);
 
-		// //this._videoRecorder = new MediaStreamRecorder(videoStream, videoOptions);
-		// //this._audioRecorder = new MediaStreamRecorder(audioStream, audioOptions);
+			this._videoRecorder.ondataavailable = function (blob) {
+				uploadBlob(_this24._videoRecorder, blob, dataType.VIDEO);
+			};
 
-		// this._videoRecorder = new RecordRtc(videoStream, videoOptions);
-		// this._audioRecorder = new RecordRtc(audioStream, audioOptions);
+			this._audioRecorder.ondataavailable = function (blob) {
+				uploadBlob(_this24._audioRecorder, blob, dataType.AUDIO);
+			};
 
-		// this._videoRecorder.ondataavailable = (blob) => {
-		// 	uploadBlob(this._videoRecorder, blob, dataType.VIDEO);
-		// }
+			_axios2.default.get('http://127.0.0.1:5000/begin').then(function (res) {
+				console.log('Server is ready, start sending data...');
 
-		// this._audioRecorder.ondataavailable = (blob) => {
-		// 	uploadBlob(this._audioRecorder, blob, dataType.AUDIO);
-		// }
+				_this24._recordState = 'recording';
+				_this24._videoRecorder.start(interval);
+				_this24._audioRecorder.start(interval);
+			});
 
-		// axios.get('http://127.0.0.1:5000/begin')
-		// .then( (res) => {
-		// 	console.log('Server is ready, start sending data...');
+			function uploadBlob(recorder, blob, datatype, index) {
+				var data = new FormData();
+				data.append('name', datatype + '-' + index);
+				data.append('file', blob);
+				data.append('datatype', datatype);
 
-		// 	this._recordState = 'recording';
-		// 	this._videoRecorder.startRecording();
-		// 	this._audioRecorder.startRecording();
-		// });
-
-		// function uploadBlob(recorder, blob, datatype, index) {
-		//     	let data = new FormData();
-		//     	data.append('name', this._room.name + '-video-' + index);
-		//        data.append('file', blob);
-		//        data.append('datatype', datatype);
-
-		//        let url = 'http://127.0.0.1:5000/data-' + datatype;
-		//        axios.post(url, data)
-		//        .then( (res) => {
-		// 		console.log(datatype + '-data blob sent.');
-		// 	})
-		// 	.catch( (err) => {
-		// 		console.log('error:' + err);
-		// 	});
-		// }
-		// }
-
-		// stopRecord() {
-		// console.log('Deactivating recorder...');
-		// this._recordState = 'inactive';
-		// this._audioRecorder.stop();
-		// this._videoRecorder.stop();
-		// setTimeout(this.finishRecord, 500);
-		// }
-
-		// finishRecord(){
-		// 	this._recordState = 'inactive';
-		// 	this._videoRecorder = null;
-		// 	this._audioRecorder = null;
-		// 	axios.get('http://127.0.0.1:5000/end')
-		// 	.then( (res) => {
-		// 		console.log('Data transfer complete')
-		// 		return 5;
-		// 	});
-		// }
-
+				var url = 'http://127.0.0.1:5000/data-' + datatype;
+				_axios2.default.post(url, data).then(function (res) {
+					console.log(datatype + '-data blob sent.');
+				}).catch(function (err) {
+					console.log('error:' + err);
+				});
+			}
+		}
+	}, {
+		key: 'stopRecord',
+		value: function stopRecord() {
+			console.log('Deactivating recorder...');
+			this._recordState = 'inactive';
+			this._audioRecorder.stop();
+			this._videoRecorder.stop();
+			setTimeout(this.finishRecord, 500);
+		}
+	}, {
+		key: 'finishRecord',
+		value: function finishRecord() {
+			this._recordState = 'inactive';
+			this._videoRecorder = null;
+			this._audioRecorder = null;
+			_axios2.default.get('http://127.0.0.1:5000/end').then(function (res) {
+				console.log('Data transfer complete');
+				return 5;
+			});
+		}
 	}]);
 	return RoomClient;
 }();
