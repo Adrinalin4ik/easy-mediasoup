@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Access-Control-Allow-Origin" content="*">
+        <title>SimpleWebRTC Demo</title>
+    </head>
+    <body>
+        <h1 id="title">Start a room</h1>
+
+        <button id="screenShareButton"></button>
+        <p id="subTitle"></p>
+        <form id="createRoom">
+            <input id="sessionInput"/>
+            <button type="submit">Create it!</button>
+        </form>
+
+        <p>
+            <button id="start">Share Screen</button>
+            <button id="recordBtn">Record</button>
+            <button id="stopRecordBtn">Stop</button>
+        </p>
+        <!-- <div class="videoContainer">
+            <video id="localVideo" style="height: 150px;" oncontextmenu="return false;" autoplay="true"></video>
+            <div id="remoteVideos"></div>
+        </div>
+        <div id="remotes"></div> -->
+        <div id="peers"></div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+        <!-- <script src="../dist/easy-mediasoup.bundle.js"></script> -->
+        <script src="../dist/easy-mediasoup.bundle.js"></script>
+        <script>
+            // grab the room from the URL
+            var user_uuid = "" + Math.floor((Math.random() * 1000 * 1000 * 1000));
+            var room = location.search && location.search.split('?')[1];
+            var config = {
+                roomId:'test123fvd',
+                //media_server_wss:"ws://127.0.0.1:3443",
+                //media_server_wss:"wss://demo.mediasoup.org:3443",
+                media_server_wss:"ws://192.168.2.121:3443", //use rserver from demo
+                peerName:user_uuid,
+                turnservers:[
+                    {
+                      urls: ["turn:turn.oblakogroup.ru", "turn:turn.oblakogroup.ru?transport=udp", "turn:turn.oblakogroup.ru?transport=tcp"],
+                      username: 'oblakogroup1',
+                      credential: 'Ob1ako'
+                    }
+                ]
+                // media_server_wss:"wss://demo.mediasoup.org:3443"
+                
+            }
+            var em = new EasyMediasoup.Init(config);
+
+            this.emitter.on("joinRoom",(client)=>{
+                this.client = client
+                console.log("CLIENT", client)
+            });
+
+            peers = [];
+            var screenShareOn = false;
+            em.emitter.on('SET_ROOM_STATE', (state) => { //new/connecting/connected/disconnected/closed
+              console.log("SET_ROOM_STATE", state);
+            });
+            em.emitter.on('enableWebcam',(test)=>{
+              console.error("enableWebcam",test);
+            });
+            em.emitter.on("SET_PRODUCER_TRACK", (MSTrack) => {
+              console.warn("SET_PRODUCER_TRACK",MSTrack);
+              setProducerTrack(MSTrack);
+            });
+            em.emitter.on("ADD_PRODUCER", (MSTrack) => {
+              console.warn("ADD_PRODUCER",MSTrack);
+              setProducerTrack(MSTrack);
+            });
+
+            let setProducerTrack = (MSTrack) =>{
+              //Take current redux state to get mediastream
+              var state = em.store.getState();
+
+              
+              // let stream_service_peer = this.get_peer(user_uuid);
+              // if (stream_service_peer.is_cam_enabled.value != false && stream_service_peer){
+                
+                if(MSTrack.source === 'webcam'){
+                    console.log("--Webcam track");
+                    if (!state.me.stream) {
+                      state.me.stream = new MediaStream();
+                    }
+
+                    //Find old track and remove it out
+                    let oldTrack = state.me.stream.getTracks().find((track) => {
+                      return track.kind == MSTrack.track.kind
+                    })
+                    if (oldTrack) state.me.stream.removeTrack(oldTrack)
+
+                    console.warn("My tracks",state.me.stream.getTracks())
+                    //Add new track instead old
+                    state.me.stream.addTrack(MSTrack.track);
+                    //render final stream
+                    add_peer(user_uuid, state.me.stream)
+
+                  }else if(MSTrack.source === 'screen'){
+                    console.log("--Screen track");
+                    if(!state.me.ss_stream){
+                      state.me.ss_stream = new MediaStream();
+                    }
+
+                    let oldTrack = state.me.ss_stream.getTracks().find((track) => {
+                      return track.kind == MSTrack.track.kind
+                    })
+                    if (oldTrack) state.me.ss_stream.removeTrack(oldTrack)
+
+                    console.warn("My tracks",state.me.ss_stream.getTracks())
+                    //Add new track instead old
+                    state.me.ss_stream.addTrack(MSTrack.track);
+                    //render final stream
+                    screenShareOn = true;
+                    add_peer_screen(user_uuid, state.me.ss_stream);
+                  }
+                
+              // }
+            }
+
+            em.emitter.on("SET_CONSUMER_EFFECTIVE_PROFILE",(newConsumer) => {
+              console.warn("SET_CONSUMER_EFFECTIVE_PROFILE", newConsumer);
+            })
+
+            em.emitter.on("SET_CONSUMER_TRACK", (consumerTrack) => {
+              //Take current redux
+              var state = em.store.getState()
+              //Find necessary peer
+              let peer = state.peers[consumerTrack.peerName]
+
+                // if (peer.stream) URL.revokeObjectURL(peer.stream);//a little optimizations :)
+                //Create new peer stream and add
+                if (!peer.stream){
+                  peer.stream = new MediaStream;
+                }
+                // peer.consumers.forEach((key) => {
+                //   let track = em.consumers[key].track
+                //   console.log(key, track)
+                //   if (track) peer.stream.addTrack(track)
+                // })
+                let oldTrack = peer.stream.getTracks().find((track) => {
+                  return track.kind == consumerTrack.track.kind
+                })
+                if (oldTrack) peer.stream.removeTrack(oldTrack)
+
+                peer.stream.addTrack(consumerTrack.track)
+                //render final stream
+                if (peer.name != user_uuid){
+                  add_peer(peer.name, peer.stream)
+                }
+            })
+
+
+            function get_peer(user_uuid){
+                let peer = peers.find(x => x.name == user_uuid)
+                if (!peer){
+                    peers.push({
+                        name:user_uuid
+                    })
+                }
+                console.log( peers.find(x => x.name == user_uuid))
+                return peers.find(x => x.name == user_uuid)
+            }
+
+            function add_peer_screen(user_uuid, stream){
+              let peer = peers.find(x => x.name == user_uuid)
+
+              peer.screen_stream_url = stream;
+              render_peers();
+            }
+
+            function add_peer(user_uuid, stream) {
+                const peer = get_peer(user_uuid);
+                
+                // console.log("STREAM", stream)
+                // if (stream) {
+
+                // stream.addEventListener('addtrack', function () {
+                //   URL.revokeObjectURL(stream);
+                // });
+                // stream.addEventListener('removetrack', function () {
+                //   URL.revokeObjectURL(stream);
+                // });
+
+                // const stream_src = window.URL.createObjectURL(stream);
+
+                peer.stream_url = stream;
+                render_peers()
+            }
+
+            function render_peers(){
+                $('#peers').empty()
+                peers.forEach((peer) => {
+                    if (peer.stream_url){
+                        remoteVideo = document.createElement("video");
+                        remoteVideo.id = peer.name + '-webcam'
+                        remoteVideo.srcObject = peer.stream_url
+                        remoteVideo.play();
+                        remoteVideo.width = 600;
+                        remoteVideo.muted = true;
+
+                        $('#peers').append(remoteVideo)
+                    }
+                    if(peer.screen_stream_url){
+                        remoteVideo = document.createElement("video");
+                        remoteVideo.id = peer.name + '-screen'
+                        remoteVideo.srcObject = peer.screen_stream_url
+                        remoteVideo.play();
+                        remoteVideo.width = 400;
+                        remoteVideo.muted = true;
+
+                        $('#peers').append(remoteVideo)
+                    }
+                })
+                
+            }
+
+
+            var extensionInstalled = false;
+            var screenShareActive = false;
+
+            document.getElementById('start').addEventListener('click', function() {
+              if(!screenShareActive){
+                if (!extensionInstalled){
+                  var message = 'Please install the extension:\n' +
+                                '1. Go to chrome://extensions\n' +
+                                '2. Check: "Enable Developer mode"\n' +
+                                '3. Click: "Load the unpacked extension..."\n' +
+                                '4. Choose "extension" folder from the repository\n' +
+                                '5. Reload this page';
+                  alert(message);
+                }
+                window.postMessage({ type: 'SS_UI_REQUEST', text: 'start' }, '*');
+                screenShareActive = true;
+                $('#start').html('Stop Share');
+              } else {
+                if(em.client.deactivateScreenShare()){
+                  screenShareActive = false;
+                  $('#start').html('Screen Share');
+                }
+              }
+              // send screen-sharer request to content-script
+              
+            });
+
+            //Recording
+            document.getElementById('recordBtn').addEventListener('click', () => {
+              document.getElementById('recordBtn').disabled = true; 
+              em.client.record(5000);
+            });
+
+            document.getElementById('stopRecordBtn').addEventListener('click', () => {
+              em.client.stopRecord();
+            });
+
+            window.onbeforeunload = confirmExit;
+
+            function confirmExit(){
+              if(em.client._recordState !== 'inactive'){
+                return em.client.finishRecord();
+              }
+            }
+
+
+            // listen for messages from the content-script
+            window.addEventListener('message', function (event) {
+              if (event.origin != window.location.origin) return;
+
+              // content-script will send a 'SS_PING' msg if extension is installed
+              if (event.data.type && (event.data.type === 'SS_PING')) {
+                extensionInstalled = true;
+              }
+
+              // user chose a stream
+              if (event.data.type && (event.data.type === 'SS_DIALOG_SUCCESS')) {
+                //em.client.record();
+                em.client.setScreenShare(event.data.streamId);
+              }
+
+              // user clicked on 'cancel' in choose media dialog
+              if (event.data.type && (event.data.type === 'SS_DIALOG_CANCEL')) {
+                console.log('User cancelled!');
+              }
+            });
+
+        </script>
+    </body>
+</html>

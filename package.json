@@ -1,6 +1,6 @@
 {
   "name": "easy-mediasoup",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Mediasoup overhead",
   "main": "./dist/easy-mediasoup.bundle.min.js",
   "scripts": {
@@ -36,13 +36,17 @@
   },
   "homepage": "https://github.com/Adrinalin4ik/easy-mediasoup#readme",
   "dependencies": {
+    "axios": "^0.18.0",
     "debug": "^3.1.0",
     "mediasoup-client": "^2.0.14",
+    "msr": "^1.3.4",
     "protoo-client": "^2.0.7",
     "random-string": "^0.2.0",
+    "recordrtc": "^5.4.6",
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
+    "requestify": "^0.2.5",
     "url-parse": "^1.1.9",
     "webrtc-adapter": "^4.0.0",
     "wildemitter": "^1.2.0",
@@ -51,20 +55,21 @@
   "devDependencies": {
     "babel-cli": "^6.16.0",
     "babel-core": "^6.17.0",
-    "babel-preset-es2015": "^6.16.0",
+    "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-preset-es2015": "^6.16.0",
     "babelify": "^8.0.0",
-    "chai": "^3.5.0",
-    "mocha": "^3.1.2",
     "browserify": "^13.1.0",
+    "chai": "^3.5.0",
+    "http-server": "^0.2.2",
+    "mocha": "^3.1.2",
     "request": "^2.72.0",
     "selenium-webdriver": "^3.0.1",
     "tape": "^4.0.0",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.7.3",
-    "http-server": "^0.2.2"
+    "webpack-cli": "^2.0.14"
   },
   "files": [
     "dist"

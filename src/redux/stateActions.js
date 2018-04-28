@@ -30,7 +30,7 @@ export const setMe = ({ peerName, displayName, displayNameSet, device }) =>
 	};
 };
 
-export const setMediaCapabilities = ({ canSendMic, canSendWebcam }) =>
+export const setMediaCapabilities = ({ canSendMic, canSendWebcam, canSendScreenShare }) =>
 {
 	return {
 		type    : 'SET_MEDIA_CAPABILITIES',
@@ -122,6 +122,22 @@ export const setWebcamInProgress = (flag) =>
 {
 	return {
 		type    : 'SET_WEBCAM_IN_PROGRESS',
+		payload : { flag }
+	};
+};
+
+export const setMicInProgress = (flag) =>
+{
+	return {
+		type    : 'SET_MIC_IN_PROGRESS',
+		payload : { flag }
+	};
+};
+
+export const setScreenShareInProgress = (flag) =>
+{
+	return {
+		type    : 'SET_SCREENSHARE_IN_PROGRESS',
 		payload : { flag }
 	};
 };
