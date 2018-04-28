@@ -5,10 +5,9 @@ import { getProtooUrl } from './urlFactory';
 // import * as cookiesManager from './cookiesManager';
 import * as requestActions from './redux/requestActions';
 import * as stateActions from './redux/stateActions';
-import MediaStreamRecorder from 'msr';
 import requestify from 'requestify';
 import axios from 'axios';
-import RecordRtc from 'recordrtc';
+import MediaStreamRecorder from 'msr';
 
 const logger = new Logger('RoomClient');
 
@@ -1734,14 +1733,7 @@ export default class RoomClient
 		//TODO: переключение источника ввода видео
 	}
 
-	record(interval){
-		let worker = this._recordWorker = new Worker('../test/recordWork.js');
-
-		let params = {
-			interval: interval,
-			axios: axios
-		};
-
+	// record(interval){
 		// if(this._screenShareProducer){
 		// 	params.videoTrack = this._screenShareProducer.track;
 		// } else if(this._webcamProducer){
@@ -1750,12 +1742,6 @@ export default class RoomClient
 		// if(this._micProducer){
 		// 	params.audio = Trackthis._micProducer.track;
 		// }
-
-		worker.postMessage({'cmd': 'init', 'params': params});
-
-		worker.addEventListener('message', (e) => {
-			console.log(e.data);
-		});
 
 		// const dataType = { VIDEO : 'video', AUDIO : 'audio' };
 
@@ -1813,26 +1799,24 @@ export default class RoomClient
 		// 		console.log('error:' + err);
 		// 	});
 		// }
-	}
+	// }
 
-	stopRecord() {
-		this._recordWorker.postMessage({'cmd': 'stop'});
-
+	// stopRecord() {
 		// console.log('Deactivating recorder...');
 		// this._recordState = 'inactive';
 		// this._audioRecorder.stop();
 		// this._videoRecorder.stop();
 		// setTimeout(this.finishRecord, 500);
-	}
+	// }
 
-	finishRecord(){
-		this._recordState = 'inactive';
-		this._videoRecorder = null;
-		this._audioRecorder = null;
-		axios.get('http://127.0.0.1:5000/end')
-		.then( (res) => {
-			console.log('Data transfer complete')
-			return 5;
-		});
-	}
+	// finishRecord(){
+	// 	this._recordState = 'inactive';
+	// 	this._videoRecorder = null;
+	// 	this._audioRecorder = null;
+	// 	axios.get('http://127.0.0.1:5000/end')
+	// 	.then( (res) => {
+	// 		console.log('Data transfer complete')
+	// 		return 5;
+	// 	});
+	// }
 }
