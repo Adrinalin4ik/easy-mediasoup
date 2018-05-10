@@ -1481,6 +1481,8 @@ export default class RoomClient
 
 	_updateWebcams()
 	{
+    if (!this._produce) return 0;
+
 		logger.debug('_updateWebcams()');
 
 		// Reset the list.
@@ -1531,6 +1533,8 @@ export default class RoomClient
 	}
 
 	_updateMics(){
+    if (!this._produce) return 0;
+
 		logger.debug('_updateMics()');
 		//console.log('inside updateMics()');
 

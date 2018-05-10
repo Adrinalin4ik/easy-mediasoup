@@ -1501,6 +1501,8 @@ var RoomClient = function () {
 		value: function _updateWebcams() {
 			var _this20 = this;
 
+			if (!this._produce) return 0;
+
 			logger.debug('_updateWebcams()');
 
 			// Reset the list.
@@ -1561,6 +1563,8 @@ var RoomClient = function () {
 		key: '_updateMics',
 		value: function _updateMics() {
 			var _this21 = this;
+
+			if (!this._produce) return 0;
 
 			logger.debug('_updateMics()');
 			//console.log('inside updateMics()');
@@ -47145,7 +47149,7 @@ module.exports={
   "_args": [
     [
       "websocket@1.0.25",
-      "/home/alex/Desktop/JS/easy-mediasoup"
+      "/home/potemkin/Projects/easy-mediasoup"
     ]
   ],
   "_from": "websocket@1.0.25",
@@ -47172,7 +47176,7 @@ module.exports={
   ],
   "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.25.tgz",
   "_spec": "1.0.25",
-  "_where": "/home/alex/Desktop/JS/easy-mediasoup",
+  "_where": "/home/potemkin/Projects/easy-mediasoup",
   "author": {
     "name": "Brian McKelvey",
     "email": "brian@worlize.com",

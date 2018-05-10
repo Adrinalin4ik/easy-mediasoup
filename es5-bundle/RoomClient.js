@@ -1430,6 +1430,8 @@ var RoomClient = function () {
 		value: function _updateWebcams() {
 			var _this20 = this;
 
+			if (!this._produce) return 0;
+
 			logger.debug('_updateWebcams()');
 
 			// Reset the list.
@@ -1490,6 +1492,8 @@ var RoomClient = function () {
 		key: '_updateMics',
 		value: function _updateMics() {
 			var _this21 = this;
+
+			if (!this._produce) return 0;
 
 			logger.debug('_updateMics()');
 			//console.log('inside updateMics()');
