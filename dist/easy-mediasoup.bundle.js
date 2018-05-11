@@ -1920,7 +1920,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.1.6');
+	console.warn('Easy mediasoup v1.1.7');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -47149,7 +47149,7 @@ module.exports={
   "_args": [
     [
       "websocket@1.0.25",
-      "/home/potemkin/Projects/easy-mediasoup"
+      "/home/alex/Desktop/JS/easy-mediasoup"
     ]
   ],
   "_from": "websocket@1.0.25",
@@ -47176,7 +47176,7 @@ module.exports={
   ],
   "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.25.tgz",
   "_spec": "1.0.25",
-  "_where": "/home/potemkin/Projects/easy-mediasoup",
+  "_where": "/home/alex/Desktop/JS/easy-mediasoup",
   "author": {
     "name": "Brian McKelvey",
     "email": "brian@worlize.com",
