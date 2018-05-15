@@ -1928,7 +1928,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.1.6');
+	console.warn('Easy mediasoup v1.1.8');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
