@@ -132,6 +132,10 @@ var RoomClient = function () {
 		// Whether we should produce.
 		this._produce = args.produce;
 
+		this._skip_consumer = args.skip_consumer;
+
+		this._user_uuid = args.user_uuid;
+
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
 
@@ -1638,6 +1642,10 @@ var RoomClient = function () {
 		key: '_handleConsumer',
 		value: function _handleConsumer(consumer) {
 			var _this23 = this;
+
+			if (this._skip_consumer && consumer.kind === 'audio' && consumer.peer._appData.displayName === this._user_uuid) {
+				return;
+			}
 
 			var codec = consumer.rtpParameters.codecs[0];
 

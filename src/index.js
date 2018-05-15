@@ -40,7 +40,7 @@ export class Init{
 			roomClientMiddleware
 		];
 
-		
+
 
 		if (process.env.NODE_ENV === 'development')
 		{
@@ -76,7 +76,9 @@ export class Init{
 		args.video_constrains = config.video_constrains || []
 		args.simulcast_options = config.simulcast_options || []
 		args.initially_muted = config.initially_muted || false
-		args.produce = config.produce
+    args.produce = config.produce
+    args.skip_consumer = config.skip_consumer
+		args.user_uuid = config.user_uuid
 
 		// if (!roomId)
 		// {

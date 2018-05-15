@@ -203,6 +203,10 @@ var RoomClient = function () {
 		// Whether we should produce.
 		this._produce = args.produce;
 
+		this._skip_consumer = args.skip_consumer;
+
+		this._user_uuid = args.user_uuid;
+
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
 
@@ -1710,6 +1714,10 @@ var RoomClient = function () {
 		value: function _handleConsumer(consumer) {
 			var _this23 = this;
 
+			if (this._skip_consumer && consumer.kind === 'audio' && consumer.peer._appData.displayName === this._user_uuid) {
+				return;
+			}
+
 			var codec = consumer.rtpParameters.codecs[0];
 
 			this._dispatch(stateActions.addConsumer({
@@ -1960,6 +1968,8 @@ var Init = exports.Init = function Init(config) {
 	args.simulcast_options = config.simulcast_options || [];
 	args.initially_muted = config.initially_muted || false;
 	args.produce = config.produce;
+	args.skip_consumer = config.skip_consumer;
+	args.user_uuid = config.user_uuid;
 
 	// if (!roomId)
 	// {
@@ -45092,6 +45102,8 @@ var paramReducer = function (acc, expr) {
   var s = expr.split(/=(.+)/, 2);
   if (s.length === 2) {
     acc[s[0]] = toIntIfInt(s[1]);
+  } else if (s.length === 1 && expr.length > 1) {
+    acc[s[0]] = undefined;
   }
   return acc;
 };

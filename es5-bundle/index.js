@@ -98,6 +98,8 @@ var Init = exports.Init = function Init(config) {
 	args.simulcast_options = config.simulcast_options || [];
 	args.initially_muted = config.initially_muted || false;
 	args.produce = config.produce;
+	args.skip_consumer = config.skip_consumer;
+	args.user_uuid = config.user_uuid;
 
 	// if (!roomId)
 	// {
