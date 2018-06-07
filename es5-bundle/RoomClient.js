@@ -1643,7 +1643,7 @@ var RoomClient = function () {
 		value: function _handleConsumer(consumer) {
 			var _this23 = this;
 
-			if (this._skip_consumer && consumer.kind === 'audio' && consumer.peer._appData.displayName === this._user_uuid) {
+			if (this._skip_consumer && consumer.kind === 'audio') {
 				return;
 			}
 

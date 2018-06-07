@@ -1661,7 +1661,7 @@ export default class RoomClient
 
 	_handleConsumer(consumer)
 	{
-    if(this._skip_consumer && consumer.kind === 'audio' && consumer.peer._appData.displayName === this._user_uuid) {
+    if(this._skip_consumer && consumer.kind === 'audio') {
       return;
     }
 
