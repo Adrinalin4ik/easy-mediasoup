@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SimpleWebRTC Demo</title>
+    </head>
+    <body>
+        <h1 id="title">Start a room</h1>
+
+        <button id="screenShareButton"></button>
+        <p id="subTitle"></p>
+        <form id="createRoom">
+            <input id="sessionInput"/>
+            <button type="submit">Create it!</button>
+        </form>
+        <div id="peers"></div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+        <!-- <script src="../dist/easy-mediasoup.bundle.js"></script> -->
+        <script src="../dist/easy-mediasoup.bundle.js"></script>
+        <script>
+            // grab the room from the URL
+            var user_uuid = "test"+Math.random()
+            var room = location.search && location.search.split('?')[1];
+            var config = {
+                roomId:'test123fvd',
+                media_server_wss:"wss://demo.mediasoup.org:3443", //use rserver from demo
+                peerName:user_uuid,
+                // turnservers:[
+                //     {
+                //       urls: ["stun/turn servers"],
+                //       username: 'your username',
+                //       credential: 'your pwd'
+                //     }
+                // ],
+                produce:true,
+                
+            }
+            var em = new EasyMediasoup.Init(config)
+
+            this.emitter.on("joinRoom",(client)=>{
+                this.client = client
+                console.log("CLIENT", client)
+            })
+            
+            peers = [];
+            em.emitter.on('SET_ROOM_STATE', (state) => { //new/connecting/connected/disconnected/closed
+              console.log("SET_ROOM_STATE", state)
+            })
+            em.emitter.on('enableWebcam',(test)=>{
+              console.error("enableWebcam",test)
+            })
+            em.emitter.on("SET_PRODUCER_TRACK", (MSTrack) => {
+              console.warn("SET_PRODUCER_TRACK",MSTrack)
+              setProducerTrack(MSTrack)
+            })
+            em.emitter.on("ADD_PRODUCER", (MSTrack) => {
+              console.warn("ADD_PRODUCER",MSTrack)
+              setProducerTrack(MSTrack)
+            })
+
+            let setProducerTrack = (MSTrack) =>{
+              //Take current redux state to get mediastream
+              var state = em.store.getState()
+              // let stream_service_peer = this.get_peer(user_uuid);
+              // if (stream_service_peer.is_cam_enabled.value != false && stream_service_peer){
+                if (!state.me.stream) {
+                  state.me.stream = new MediaStream;
+                }
+                //Find old track and remove it out
+                let oldTrack = state.me.stream.getTracks().find((track) => {
+                  return track.kind == MSTrack.track.kind
+                })
+                if (oldTrack) state.me.stream.removeTrack(oldTrack)
+
+                console.warn("My tracks",state.me.stream.getTracks())
+                //Add new track instead old
+                state.me.stream.addTrack(MSTrack.track);
+                //render final stream
+                add_peer(user_uuid, state.me.stream)
+              // }
+            }
+
+            em.emitter.on("SET_CONSUMER_EFFECTIVE_PROFILE",(newConsumer) => {
+              console.warn("SET_CONSUMER_EFFECTIVE_PROFILE", newConsumer);
+            })
+
+            em.emitter.on("SET_CONSUMER_TRACK", (consumerTrack) => {
+              //Take current redux
+              var state = em.store.getState()
+              //Find necessary peer
+              let peer = state.peers[consumerTrack.peerName]
+
+                //Create new peer stream and add
+                if (!peer.stream){
+                  peer.stream = new MediaStream;
+                }
+                let oldTrack = peer.stream.getTracks().find((track) => {
+                  return track.kind == consumerTrack.track.kind
+                })
+                if (oldTrack) peer.stream.removeTrack(oldTrack)
+
+                peer.stream.addTrack(consumerTrack.track)
+                //render final stream
+                if (peer.name != user_uuid){
+                  add_peer(peer.name, peer.stream)
+                }
+            })
+
+
+            function get_peer(user_uuid){
+                let peer = peers.find(x => x.name == user_uuid)
+                if (!peer){
+                    peers.push({
+                        name:user_uuid
+                    })
+                }
+                console.log( peers.find(x => x.name == user_uuid))
+                return peers.find(x => x.name == user_uuid)
+            }
+
+            function add_peer(user_uuid, stream) {
+                const peer = get_peer(user_uuid);
+
+                peer.stream_url = stream;
+                render_peers()
+            }
+
+            function render_peers(){
+                $('#peers').empty()
+                peers.forEach((peer) => {
+                    if (peer.stream_url){
+                        remoteVideo = document.createElement("video");
+                        remoteVideo.id = peer.name
+                        remoteVideo.srcObject = peer.stream_url
+                        remoteVideo.play();
+                        remoteVideo.width = 300;
+                        // remoteVideo.muted = true;
+
+                        $('#peers').append(remoteVideo)
+                    }
+                })
+                
+            }
+
+        </script>
+    </body>
+</html>
