@@ -54,17 +54,9 @@ var _stateActions = require('./redux/stateActions');
 
 var stateActions = _interopRequireWildcard(_stateActions);
 
-var _requestify = require('requestify');
-
-var _requestify2 = _interopRequireDefault(_requestify);
-
 var _axios = require('axios');
 
 var _axios2 = _interopRequireDefault(_axios);
-
-var _recordrtc = require('recordrtc');
-
-var _recordrtc2 = _interopRequireDefault(_recordrtc);
 
 var _msr = require('msr');
 
