@@ -104,6 +104,7 @@ export default class RoomClient
 
 		// User screen capture mediasoup Producer.
 		this._screenShareProducer = null;
+		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
@@ -219,12 +220,19 @@ export default class RoomClient
 	}
 
 	deactivateScreenShare(){
-		console.log('deactivateScreenShare()');
+		// console.log('deactivateScreenShare()');
 		if(!this._screenShareProducer) {
-			console.log("Error! Screen share producer doesn't exist");
+			logger.error("Error! Screen share producer doesn't exist");
+			// console.log("Error! Screen share producer doesn't exist");
 			return false;
 		}
+		// if(this._screenShareOriginalStream) console.log('stream exists');
+		// this._screenShareOriginalStream.getTracks().forEach(track => {
+		// 	track.stop();
+		// });
+		this._screenShareProducer.close();
 		this._screenShareProducer = null;
+		logger.debug('producer deactivated successfully');
 		return true;
 	}
 
@@ -1255,6 +1263,7 @@ export default class RoomClient
 			})
 			.then((stream) =>
 			{
+				this._screenShareOriginalStream = stream;
 				const track = stream.getVideoTracks()[0];
 
 				return this._screenShareProducer.replaceTrack(track)
@@ -1312,6 +1321,8 @@ export default class RoomClient
 				})
 				.then((stream) =>
 				{
+					this._screenShareOriginalStream = stream;
+					
 					const track = stream.getVideoTracks()[0];
 
 					producer = this._room.createProducer(

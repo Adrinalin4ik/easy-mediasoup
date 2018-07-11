@@ -168,6 +168,7 @@ var RoomClient = function () {
 
 		// User screen capture mediasoup Producer.
 		this._screenShareProducer = null;
+		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
@@ -282,12 +283,19 @@ var RoomClient = function () {
 	}, {
 		key: 'deactivateScreenShare',
 		value: function deactivateScreenShare() {
-			console.log('deactivateScreenShare()');
+			// console.log('deactivateScreenShare()');
 			if (!this._screenShareProducer) {
-				console.log("Error! Screen share producer doesn't exist");
+				logger.error("Error! Screen share producer doesn't exist");
+				// console.log("Error! Screen share producer doesn't exist");
 				return false;
 			}
+			// if(this._screenShareOriginalStream) console.log('stream exists');
+			// this._screenShareOriginalStream.getTracks().forEach(track => {
+			// 	track.stop();
+			// });
+			this._screenShareProducer.close();
 			this._screenShareProducer = null;
+			logger.debug('producer deactivated successfully');
 			return true;
 		}
 
@@ -1247,6 +1255,7 @@ var RoomClient = function () {
 					}
 				});
 			}).then(function (stream) {
+				_this17._screenShareOriginalStream = stream;
 				var track = stream.getVideoTracks()[0];
 
 				return _this17._screenShareProducer.replaceTrack(track).then(function (newTrack) {
@@ -1291,6 +1300,7 @@ var RoomClient = function () {
 					}
 				});
 			}).then(function (stream) {
+				_this18._screenShareOriginalStream = stream;
 				var track = stream.getVideoTracks()[0];
 
 				producer = _this18._room.createProducer(track, { simulcast: _this18._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });

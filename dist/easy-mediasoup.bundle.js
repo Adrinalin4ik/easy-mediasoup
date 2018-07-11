@@ -239,6 +239,7 @@ var RoomClient = function () {
 
 		// User screen capture mediasoup Producer.
 		this._screenShareProducer = null;
+		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
@@ -353,12 +354,19 @@ var RoomClient = function () {
 	}, {
 		key: 'deactivateScreenShare',
 		value: function deactivateScreenShare() {
-			console.log('deactivateScreenShare()');
+			// console.log('deactivateScreenShare()');
 			if (!this._screenShareProducer) {
-				console.log("Error! Screen share producer doesn't exist");
+				logger.error("Error! Screen share producer doesn't exist");
+				// console.log("Error! Screen share producer doesn't exist");
 				return false;
 			}
+			// if(this._screenShareOriginalStream) console.log('stream exists');
+			// this._screenShareOriginalStream.getTracks().forEach(track => {
+			// 	track.stop();
+			// });
+			this._screenShareProducer.close();
 			this._screenShareProducer = null;
+			logger.debug('producer deactivated successfully');
 			return true;
 		}
 
@@ -1318,6 +1326,7 @@ var RoomClient = function () {
 					}
 				});
 			}).then(function (stream) {
+				_this17._screenShareOriginalStream = stream;
 				var track = stream.getVideoTracks()[0];
 
 				return _this17._screenShareProducer.replaceTrack(track).then(function (newTrack) {
@@ -1362,6 +1371,7 @@ var RoomClient = function () {
 					}
 				});
 			}).then(function (stream) {
+				_this18._screenShareOriginalStream = stream;
 				var track = stream.getVideoTracks()[0];
 
 				producer = _this18._room.createProducer(track, { simulcast: _this18._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
@@ -4744,7 +4754,7 @@ exports.default = function (arr) {
       , silk = /silk/i.test(ua)
       , sailfish = /sailfish/i.test(ua)
       , tizen = /tizen/i.test(ua)
-      , webos = /(web|hpw)os/i.test(ua)
+      , webos = /(web|hpw)(o|0)s/i.test(ua)
       , windowsphone = /windows phone/i.test(ua)
       , samsungBrowser = /SamsungBrowser/i.test(ua)
       , windows = !windowsphone && /windows/i.test(ua)
@@ -4779,11 +4789,32 @@ exports.default = function (arr) {
         , version: versionIdentifier || getFirstMatch(/(?:SamsungBrowser)[\s\/](\d+(\.\d+)?)/i)
       }
     }
+    else if (/Whale/i.test(ua)) {
+      result = {
+        name: 'NAVER Whale browser'
+        , whale: t
+        , version: getFirstMatch(/(?:whale)[\s\/](\d+(?:\.\d+)+)/i)
+      }
+    }
+    else if (/MZBrowser/i.test(ua)) {
+      result = {
+        name: 'MZ Browser'
+        , mzbrowser: t
+        , version: getFirstMatch(/(?:MZBrowser)[\s\/](\d+(?:\.\d+)+)/i)
+      }
+    }
     else if (/coast/i.test(ua)) {
       result = {
         name: 'Opera Coast'
         , coast: t
         , version: versionIdentifier || getFirstMatch(/(?:coast)[\s\/](\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/focus/i.test(ua)) {
+      result = {
+        name: 'Focus'
+        , focus: t
+        , version: getFirstMatch(/(?:focus)[\s\/](\d+(?:\.\d+)+)/i)
       }
     }
     else if (/yabrowser/i.test(ua)) {
@@ -5132,6 +5163,9 @@ exports.default = function (arr) {
 		    (result.vivaldi && result.version >= 1.0) ||
         (result.chrome && result.version >= 20) ||
         (result.samsungBrowser && result.version >= 4) ||
+        (result.whale && compareVersions([result.version, '1.0']) === 1) ||
+        (result.mzbrowser && compareVersions([result.version, '6.0']) === 1) ||
+        (result.focus && compareVersions([result.version, '1.0']) === 1) ||
         (result.firefox && result.version >= 20.0) ||
         (result.safari && result.version >= 6) ||
         (result.opera && result.version >= 10.0) ||
@@ -10443,7 +10477,8 @@ var Room = function (_EnhancedEventEmitter) {
 			roomSettings: options.roomSettings,
 			requestTimeout: options.requestTimeout || 10000,
 			transportOptions: options.transportOptions || {},
-			turnServers: options.turnServers || []
+			turnServers: options.turnServers || [],
+			iceTransportPolicy: options.iceTransportPolicy || 'all'
 		};
 
 		// Room state.
@@ -12426,7 +12461,7 @@ var Handler = function (_EnhancedEventEmitter) {
 
 		_this._pc = new RTCPeerConnection({
 			iceServers: settings.turnServers || [],
-			iceTransportPolicy: 'all',
+			iceTransportPolicy: settings.iceTransportPolicy,
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require'
 		});
@@ -13044,7 +13079,7 @@ var Handler = function (_EnhancedEventEmitter) {
 
 		_this._pc = new RTCPeerConnection({
 			iceServers: settings.turnServers || [],
-			iceTransportPolicy: 'all',
+			iceTransportPolicy: settings.iceTransportPolicy,
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require'
 		});
@@ -13945,7 +13980,7 @@ var Edge11 = function (_EnhancedEventEmitter) {
 		value: function _setIceGatherer(settings) {
 			var iceGatherer = new RTCIceGatherer({
 				iceServers: settings.turnServers || [],
-				gatherPolicy: 'all'
+				gatherPolicy: settings.iceTransportPolicy
 			});
 
 			iceGatherer.addEventListener('error', function (event) {
@@ -14183,7 +14218,7 @@ var Handler = function (_EnhancedEventEmitter) {
 
 		_this._pc = new RTCPeerConnection({
 			iceServers: settings.turnServers || [],
-			iceTransportPolicy: 'all',
+			iceTransportPolicy: settings.iceTransportPolicy,
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require'
 		});
@@ -14289,7 +14324,7 @@ var SendHandler = function (_Handler) {
 					encodings.push({
 						rid: 'high' + _this3._nextRid,
 						active: true,
-						priority: 'high',
+						priority: 'low',
 						maxBitrate: producer.simulcast.high
 					});
 				}
@@ -14307,7 +14342,7 @@ var SendHandler = function (_Handler) {
 					encodings.push({
 						rid: 'low' + _this3._nextRid,
 						active: true,
-						priority: 'low',
+						priority: 'high',
 						maxBitrate: producer.simulcast.low
 					});
 				}
@@ -14833,7 +14868,7 @@ var Handler = function (_EnhancedEventEmitter) {
 
 		_this._pc = new RTCPeerConnection({
 			iceServers: settings.turnServers || [],
-			iceTransportPolicy: 'all',
+			iceTransportPolicy: settings.iceTransportPolicy,
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require'
 		});
@@ -14939,7 +14974,7 @@ var SendHandler = function (_Handler) {
 					encodings.push({
 						rid: 'high' + _this3._nextRid,
 						active: true,
-						priority: 'high',
+						priority: 'low',
 						maxBitrate: producer.simulcast.high
 					});
 				}
@@ -14957,7 +14992,7 @@ var SendHandler = function (_Handler) {
 					encodings.push({
 						rid: 'low' + _this3._nextRid,
 						active: true,
-						priority: 'low',
+						priority: 'high',
 						maxBitrate: producer.simulcast.low
 					});
 				}
@@ -15474,7 +15509,7 @@ var Handler = function (_EnhancedEventEmitter) {
 
 		_this._pc = new RTCPeerConnection({
 			iceServers: settings.turnServers || [],
-			iceTransportPolicy: 'all',
+			iceTransportPolicy: settings.iceTransportPolicy,
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require'
 		});
@@ -16141,7 +16176,7 @@ var Handler = function (_EnhancedEventEmitter) {
 
 		_this._pc = new RTCPeerConnection({
 			iceServers: settings.turnServers || [],
-			iceTransportPolicy: 'all',
+			iceTransportPolicy: settings.iceTransportPolicy,
 			bundlePolicy: 'max-bundle',
 			rtcpMuxPolicy: 'require'
 		});
@@ -23431,6 +23466,7 @@ function bindActionCreators(actionCreators, dispatch) {
   return boundActionCreators;
 }
 },{}],207:[function(require,module,exports){
+(function (process){
 'use strict';
 
 exports.__esModule = true;
@@ -23518,7 +23554,7 @@ function combineReducers(reducers) {
   for (var i = 0; i < reducerKeys.length; i++) {
     var key = reducerKeys[i];
 
-    if ("production" !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       if (typeof reducers[key] === 'undefined') {
         (0, _warning2['default'])('No reducer provided for key "' + key + '"');
       }
@@ -23531,7 +23567,7 @@ function combineReducers(reducers) {
   var finalReducerKeys = Object.keys(finalReducers);
 
   var unexpectedKeyCache = void 0;
-  if ("production" !== 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     unexpectedKeyCache = {};
   }
 
@@ -23550,7 +23586,7 @@ function combineReducers(reducers) {
       throw shapeAssertionError;
     }
 
-    if ("production" !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       var warningMessage = getUnexpectedStateShapeWarningMessage(state, finalReducers, action, unexpectedKeyCache);
       if (warningMessage) {
         (0, _warning2['default'])(warningMessage);
@@ -23574,7 +23610,8 @@ function combineReducers(reducers) {
     return hasChanged ? nextState : state;
   };
 }
-},{"./createStore":209,"./utils/warning":211,"lodash/isPlainObject":164}],208:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./createStore":209,"./utils/warning":211,"_process":193,"lodash/isPlainObject":164}],208:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -23874,6 +23911,7 @@ var ActionTypes = exports.ActionTypes = {
   }, _ref2[_symbolObservable2['default']] = observable, _ref2;
 }
 },{"lodash/isPlainObject":164,"symbol-observable":219}],210:[function(require,module,exports){
+(function (process){
 'use strict';
 
 exports.__esModule = true;
@@ -23911,7 +23949,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 */
 function isCrushed() {}
 
-if ("production" !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
+if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
   (0, _warning2['default'])('You are currently using minified code outside of NODE_ENV === \'production\'. ' + 'This means that you are running a slower development build of Redux. ' + 'You can use loose-envify (https://github.com/zertosh/loose-envify) for browserify ' + 'or DefinePlugin for webpack (http://stackoverflow.com/questions/30030031) ' + 'to ensure you have the correct code for your production build.');
 }
 
@@ -23920,7 +23958,8 @@ exports.combineReducers = _combineReducers2['default'];
 exports.bindActionCreators = _bindActionCreators2['default'];
 exports.applyMiddleware = _applyMiddleware2['default'];
 exports.compose = _compose2['default'];
-},{"./applyMiddleware":205,"./bindActionCreators":206,"./combineReducers":207,"./compose":208,"./createStore":209,"./utils/warning":211}],211:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./applyMiddleware":205,"./bindActionCreators":206,"./combineReducers":207,"./compose":208,"./createStore":209,"./utils/warning":211,"_process":193}],211:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -24626,6 +24665,8 @@ var paramReducer = function (acc, expr) {
   var s = expr.split(/=(.+)/, 2);
   if (s.length === 2) {
     acc[s[0]] = toIntIfInt(s[1]);
+  } else if (s.length === 1 && expr.length > 1) {
+    acc[s[0]] = undefined;
   }
   return acc;
 };
@@ -24907,7 +24948,7 @@ module.exports={
   "_args": [
     [
       "websocket@1.0.25",
-      "/Users/sergeytomashevsky/Desktop/code/tmp/easy-mediasoup"
+      "/home/serg/Рабочий стол/code/ems"
     ]
   ],
   "_from": "websocket@1.0.25",
@@ -24934,7 +24975,7 @@ module.exports={
   ],
   "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.25.tgz",
   "_spec": "1.0.25",
-  "_where": "/Users/sergeytomashevsky/Desktop/code/tmp/easy-mediasoup",
+  "_where": "/home/serg/Рабочий стол/code/ems",
   "author": {
     "name": "Brian McKelvey",
     "email": "brian@worlize.com",
