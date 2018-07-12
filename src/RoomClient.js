@@ -227,9 +227,11 @@ export default class RoomClient
 			return false;
 		}
 		// if(this._screenShareOriginalStream) console.log('stream exists');
-		// this._screenShareOriginalStream.getTracks().forEach(track => {
-		// 	track.stop();
-		// });
+		this._screenShareOriginalStream.getTracks().forEach(track => {
+			// console.log('track stopped');
+			track.stop();
+		});
+		this._screenShareOriginalStream = null;
 		this._screenShareProducer.close();
 		this._screenShareProducer = null;
 		logger.debug('producer deactivated successfully');
@@ -1269,7 +1271,7 @@ export default class RoomClient
 				return this._screenShareProducer.replaceTrack(track)
 					.then((newTrack) =>
 					{
-						track.stop();
+						// track.stop();
 
 						return newTrack;
 					});
@@ -1327,7 +1329,7 @@ export default class RoomClient
 
 					producer = this._room.createProducer(
 						track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
-					track.stop();	
+					// track.stop();	
 
 					return producer.send(this._sendTransport);
 				})
