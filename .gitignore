@@ -1,5 +1,5 @@
 node_modules
 recordings
 test
-dist
+dist/*
 es5-bundle
