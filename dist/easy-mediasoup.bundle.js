@@ -196,7 +196,11 @@ var RoomClient = function () {
 		this._closed = false;
 
 		// Whether we should produce.
-		this._produce = produce;
+		this._produce = args.produce;
+
+		this._skip_consumer = args.skip_consumer;
+
+		this._user_uuid = args.user_uuid;
 
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
@@ -238,7 +242,7 @@ var RoomClient = function () {
 		this._recordIntervalFunc = null;
 
 		// User screen capture mediasoup Producer.
-		this._screenShareProducer = null;
+		this.screenShareProducer = null;
 		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
@@ -349,13 +353,13 @@ var RoomClient = function () {
 		value: function setScreenShare(streamId) {
 			console.log("setScreenShare()");
 			this._screenStreamId = streamId;
-			if (!this._screenShareProducer) this._activateScreenShare();else this._changeScreenForShare();
+			if (!this.screenShareProducer) this._activateScreenShare();else this._changeScreenForShare();
 		}
 	}, {
 		key: 'deactivateScreenShare',
 		value: function deactivateScreenShare() {
 			// console.log('deactivateScreenShare()');
-			if (!this._screenShareProducer) {
+			if (!this.screenShareProducer) {
 				logger.error("Error! Screen share producer doesn't exist");
 				// console.log("Error! Screen share producer doesn't exist");
 				return false;
@@ -366,8 +370,8 @@ var RoomClient = function () {
 				track.stop();
 			});
 			this._screenShareOriginalStream = null;
-			this._screenShareProducer.close();
-			this._screenShareProducer = null;
+			this.screenShareProducer.close();
+			this.screenShareProducer = null;
 			logger.debug('producer deactivated successfully');
 			return true;
 		}
@@ -1024,7 +1028,7 @@ var RoomClient = function () {
 				}));
 			}).then(function () {
 				// Don't produce if explicitely requested to not to do it.
-				if (!_this14._produce) return;
+				if (!_this14._produce) return 0;
 
 				// NOTE: Don't depend on this Promise to continue (so we don't do return).
 				_promise2.default.resolve()
@@ -1097,9 +1101,7 @@ var RoomClient = function () {
 		value: function _setMicProducer() {
 			var _this15 = this;
 
-			//console.log('inside mic producer');
-			//console.log(this._mic.deviceId);
-
+			if (!this._produce) return 0;
 			if (!this._room.canSend('audio')) {
 				return _promise2.default.reject(new Error('cannot send audio'));
 			}
@@ -1194,6 +1196,7 @@ var RoomClient = function () {
 		value: function _setWebcamProducer() {
 			var _this16 = this;
 
+			if (!this._produce) return 0;
 			if (!this._is_webcam_enabled) return 0;
 
 			// if (!this._room.canSend('video'))
@@ -1331,13 +1334,13 @@ var RoomClient = function () {
 				_this17._screenShareOriginalStream = stream;
 				var track = stream.getVideoTracks()[0];
 
-				return _this17._screenShareProducer.replaceTrack(track).then(function (newTrack) {
+				return _this17.screenShareProducer.replaceTrack(track).then(function (newTrack) {
 					// track.stop();
 
 					return newTrack;
 				});
 			}).then(function (newTrack) {
-				_this17._dispatch(stateActions.setProducerTrack(_this17._screenShareProducer.id, newTrack));
+				_this17._dispatch(stateActions.setProducerTrack(_this17.screenShareProducer.id, newTrack));
 
 				_this17._dispatch(stateActions.setScreenShareInProgress(false));
 			}).catch(function (error) {
@@ -1353,7 +1356,7 @@ var RoomClient = function () {
 
 			if (!this._is_screenshare_enabled) return 0;
 
-			if (this._screenShareProducer) {
+			if (this.screenShareProducer) {
 				return _promise2.default.reject(new Error('screenshare Producer already exists'));
 			}
 
@@ -1382,7 +1385,7 @@ var RoomClient = function () {
 
 				return producer.send(_this18._sendTransport);
 			}).then(function () {
-				_this18._screenShareProducer = producer;
+				_this18.screenShareProducer = producer;
 
 				_this18._dispatch(stateActions.addProducer({
 					id: producer.id,
@@ -1396,7 +1399,7 @@ var RoomClient = function () {
 				producer.on('close', function (originator) {
 					logger.debug('screenshare Producer "close" event [originator:%s]', originator);
 
-					_this18._screenShareProducer = null;
+					_this18.screenShareProducer = null;
 					_this18._dispatch(stateActions.removeProducer(producer.id));
 				});
 
@@ -1510,6 +1513,8 @@ var RoomClient = function () {
 		value: function _updateWebcams() {
 			var _this20 = this;
 
+			if (!this._produce) return 0;
+
 			logger.debug('_updateWebcams()');
 
 			// Reset the list.
@@ -1570,6 +1575,8 @@ var RoomClient = function () {
 		key: '_updateMics',
 		value: function _updateMics() {
 			var _this21 = this;
+
+			if (!this._produce) return 0;
 
 			logger.debug('_updateMics()');
 			//console.log('inside updateMics()');
@@ -1715,6 +1722,10 @@ var RoomClient = function () {
 		value: function _handleConsumer(consumer) {
 			var _this23 = this;
 
+			if (this._skip_consumer && consumer.kind === 'audio') {
+				return;
+			}
+
 			var codec = consumer.rtpParameters.codecs[0];
 
 			this._dispatch(stateActions.addConsumer({
@@ -1781,8 +1792,8 @@ var RoomClient = function () {
 			var videoStream = new MediaStream(),
 			    audioStream = new MediaStream();
 
-			if (this._screenShareProducer) {
-				videoStream.addTrack(this._screenShareProducer.track);
+			if (this.screenShareProducer) {
+				videoStream.addTrack(this.screenShareProducer.track);
 			} else if (this._webcamProducer) {
 				videoStream.addTrack(this._webcamProducer.track);
 			}
@@ -1916,7 +1927,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.1.2');
+	console.warn('Easy mediasoup v1.1.9');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -1955,6 +1966,9 @@ var Init = exports.Init = function Init(config) {
 	args.video_constrains = config.video_constrains || [];
 	args.simulcast_options = config.simulcast_options || [];
 	args.initially_muted = config.initially_muted || false;
+	args.produce = config.produce;
+	args.skip_consumer = config.skip_consumer;
+	args.user_uuid = config.user_uuid;
 
 	// if (!roomId)
 	// {
@@ -23469,7 +23483,6 @@ function bindActionCreators(actionCreators, dispatch) {
   return boundActionCreators;
 }
 },{}],207:[function(require,module,exports){
-(function (process){
 'use strict';
 
 exports.__esModule = true;
@@ -23557,7 +23570,7 @@ function combineReducers(reducers) {
   for (var i = 0; i < reducerKeys.length; i++) {
     var key = reducerKeys[i];
 
-    if (process.env.NODE_ENV !== 'production') {
+    if ("production" !== 'production') {
       if (typeof reducers[key] === 'undefined') {
         (0, _warning2['default'])('No reducer provided for key "' + key + '"');
       }
@@ -23570,7 +23583,7 @@ function combineReducers(reducers) {
   var finalReducerKeys = Object.keys(finalReducers);
 
   var unexpectedKeyCache = void 0;
-  if (process.env.NODE_ENV !== 'production') {
+  if ("production" !== 'production') {
     unexpectedKeyCache = {};
   }
 
@@ -23589,7 +23602,7 @@ function combineReducers(reducers) {
       throw shapeAssertionError;
     }
 
-    if (process.env.NODE_ENV !== 'production') {
+    if ("production" !== 'production') {
       var warningMessage = getUnexpectedStateShapeWarningMessage(state, finalReducers, action, unexpectedKeyCache);
       if (warningMessage) {
         (0, _warning2['default'])(warningMessage);
@@ -23613,8 +23626,7 @@ function combineReducers(reducers) {
     return hasChanged ? nextState : state;
   };
 }
-}).call(this,require('_process'))
-},{"./createStore":209,"./utils/warning":211,"_process":193,"lodash/isPlainObject":164}],208:[function(require,module,exports){
+},{"./createStore":209,"./utils/warning":211,"lodash/isPlainObject":164}],208:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -23914,7 +23926,6 @@ var ActionTypes = exports.ActionTypes = {
   }, _ref2[_symbolObservable2['default']] = observable, _ref2;
 }
 },{"lodash/isPlainObject":164,"symbol-observable":219}],210:[function(require,module,exports){
-(function (process){
 'use strict';
 
 exports.__esModule = true;
@@ -23952,7 +23963,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 */
 function isCrushed() {}
 
-if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
+if ("production" !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
   (0, _warning2['default'])('You are currently using minified code outside of NODE_ENV === \'production\'. ' + 'This means that you are running a slower development build of Redux. ' + 'You can use loose-envify (https://github.com/zertosh/loose-envify) for browserify ' + 'or DefinePlugin for webpack (http://stackoverflow.com/questions/30030031) ' + 'to ensure you have the correct code for your production build.');
 }
 
@@ -23961,8 +23972,7 @@ exports.combineReducers = _combineReducers2['default'];
 exports.bindActionCreators = _bindActionCreators2['default'];
 exports.applyMiddleware = _applyMiddleware2['default'];
 exports.compose = _compose2['default'];
-}).call(this,require('_process'))
-},{"./applyMiddleware":205,"./bindActionCreators":206,"./combineReducers":207,"./compose":208,"./createStore":209,"./utils/warning":211,"_process":193}],211:[function(require,module,exports){
+},{"./applyMiddleware":205,"./bindActionCreators":206,"./combineReducers":207,"./compose":208,"./createStore":209,"./utils/warning":211}],211:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;

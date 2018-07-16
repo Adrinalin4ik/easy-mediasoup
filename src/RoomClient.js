@@ -108,7 +108,7 @@ export default class RoomClient
 		this._recordIntervalFunc = null;
 
 		// User screen capture mediasoup Producer.
-		this._screenShareProducer = null;
+		this.screenShareProducer = null;
 		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
@@ -220,13 +220,13 @@ export default class RoomClient
 	setScreenShare(streamId){
 		console.log("setScreenShare()");
 		this._screenStreamId = streamId;
-		if(!this._screenShareProducer) this._activateScreenShare();
+		if(!this.screenShareProducer) this._activateScreenShare();
 		else this._changeScreenForShare();
 	}
 
 	deactivateScreenShare(){
 		// console.log('deactivateScreenShare()');
-		if(!this._screenShareProducer) {
+		if(!this.screenShareProducer) {
 			logger.error("Error! Screen share producer doesn't exist");
 			// console.log("Error! Screen share producer doesn't exist");
 			return false;
@@ -237,8 +237,8 @@ export default class RoomClient
 			track.stop();
 		});
 		this._screenShareOriginalStream = null;
-		this._screenShareProducer.close();
-		this._screenShareProducer = null;
+		this.screenShareProducer.close();
+		this.screenShareProducer = null;
 		logger.debug('producer deactivated successfully');
 		return true;
 	}
@@ -1269,7 +1269,7 @@ export default class RoomClient
 				this._screenShareOriginalStream = stream;
 				const track = stream.getVideoTracks()[0];
 
-				return this._screenShareProducer.replaceTrack(track)
+				return this.screenShareProducer.replaceTrack(track)
 					.then((newTrack) =>
 					{
 						// track.stop();
@@ -1280,7 +1280,7 @@ export default class RoomClient
 			.then((newTrack) =>
 			{
 				this._dispatch(
-					stateActions.setProducerTrack(this._screenShareProducer.id, newTrack));
+					stateActions.setProducerTrack(this.screenShareProducer.id, newTrack));
 
 				this._dispatch(
 					stateActions.setScreenShareInProgress(false));
@@ -1298,7 +1298,7 @@ export default class RoomClient
 	{
 		if (!this._is_screenshare_enabled) return 0
 
-		if (this._screenShareProducer)
+		if (this.screenShareProducer)
 		{
 			return Promise.reject(
 				new Error('screenshare Producer already exists'));
@@ -1336,7 +1336,7 @@ export default class RoomClient
 				})
 				.then(() =>
 				{
-					this._screenShareProducer = producer;
+					this.screenShareProducer = producer;
 
 					this._dispatch(stateActions.addProducer(
 						{
@@ -1353,7 +1353,7 @@ export default class RoomClient
 						logger.debug(
 							'screenshare Producer "close" event [originator:%s]', originator);
 
-						this._screenShareProducer = null;
+						this.screenShareProducer = null;
 						this._dispatch(stateActions.removeProducer(producer.id));
 					});
 
@@ -1761,8 +1761,8 @@ export default class RoomClient
 		let videoStream = new MediaStream(),
 			audioStream = new MediaStream();
 
-		if(this._screenShareProducer){
-			videoStream.addTrack(this._screenShareProducer.track);
+		if(this.screenShareProducer){
+			videoStream.addTrack(this.screenShareProducer.track);
 		} else if(this._webcamProducer){
 			videoStream.addTrack(this._webcamProducer.track);
 		}

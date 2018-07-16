@@ -125,7 +125,11 @@ var RoomClient = function () {
 		this._closed = false;
 
 		// Whether we should produce.
-		this._produce = produce;
+		this._produce = args.produce;
+
+		this._skip_consumer = args.skip_consumer;
+
+		this._user_uuid = args.user_uuid;
 
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
@@ -167,7 +171,7 @@ var RoomClient = function () {
 		this._recordIntervalFunc = null;
 
 		// User screen capture mediasoup Producer.
-		this._screenShareProducer = null;
+		this.screenShareProducer = null;
 		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
@@ -278,13 +282,13 @@ var RoomClient = function () {
 		value: function setScreenShare(streamId) {
 			console.log("setScreenShare()");
 			this._screenStreamId = streamId;
-			if (!this._screenShareProducer) this._activateScreenShare();else this._changeScreenForShare();
+			if (!this.screenShareProducer) this._activateScreenShare();else this._changeScreenForShare();
 		}
 	}, {
 		key: 'deactivateScreenShare',
 		value: function deactivateScreenShare() {
 			// console.log('deactivateScreenShare()');
-			if (!this._screenShareProducer) {
+			if (!this.screenShareProducer) {
 				logger.error("Error! Screen share producer doesn't exist");
 				// console.log("Error! Screen share producer doesn't exist");
 				return false;
@@ -295,8 +299,8 @@ var RoomClient = function () {
 				track.stop();
 			});
 			this._screenShareOriginalStream = null;
-			this._screenShareProducer.close();
-			this._screenShareProducer = null;
+			this.screenShareProducer.close();
+			this.screenShareProducer = null;
 			logger.debug('producer deactivated successfully');
 			return true;
 		}
@@ -953,7 +957,7 @@ var RoomClient = function () {
 				}));
 			}).then(function () {
 				// Don't produce if explicitely requested to not to do it.
-				if (!_this14._produce) return;
+				if (!_this14._produce) return 0;
 
 				// NOTE: Don't depend on this Promise to continue (so we don't do return).
 				_promise2.default.resolve()
@@ -1026,9 +1030,7 @@ var RoomClient = function () {
 		value: function _setMicProducer() {
 			var _this15 = this;
 
-			//console.log('inside mic producer');
-			//console.log(this._mic.deviceId);
-
+			if (!this._produce) return 0;
 			if (!this._room.canSend('audio')) {
 				return _promise2.default.reject(new Error('cannot send audio'));
 			}
@@ -1123,6 +1125,7 @@ var RoomClient = function () {
 		value: function _setWebcamProducer() {
 			var _this16 = this;
 
+			if (!this._produce) return 0;
 			if (!this._is_webcam_enabled) return 0;
 
 			// if (!this._room.canSend('video'))
@@ -1260,13 +1263,13 @@ var RoomClient = function () {
 				_this17._screenShareOriginalStream = stream;
 				var track = stream.getVideoTracks()[0];
 
-				return _this17._screenShareProducer.replaceTrack(track).then(function (newTrack) {
+				return _this17.screenShareProducer.replaceTrack(track).then(function (newTrack) {
 					// track.stop();
 
 					return newTrack;
 				});
 			}).then(function (newTrack) {
-				_this17._dispatch(stateActions.setProducerTrack(_this17._screenShareProducer.id, newTrack));
+				_this17._dispatch(stateActions.setProducerTrack(_this17.screenShareProducer.id, newTrack));
 
 				_this17._dispatch(stateActions.setScreenShareInProgress(false));
 			}).catch(function (error) {
@@ -1282,7 +1285,7 @@ var RoomClient = function () {
 
 			if (!this._is_screenshare_enabled) return 0;
 
-			if (this._screenShareProducer) {
+			if (this.screenShareProducer) {
 				return _promise2.default.reject(new Error('screenshare Producer already exists'));
 			}
 
@@ -1311,7 +1314,7 @@ var RoomClient = function () {
 
 				return producer.send(_this18._sendTransport);
 			}).then(function () {
-				_this18._screenShareProducer = producer;
+				_this18.screenShareProducer = producer;
 
 				_this18._dispatch(stateActions.addProducer({
 					id: producer.id,
@@ -1325,7 +1328,7 @@ var RoomClient = function () {
 				producer.on('close', function (originator) {
 					logger.debug('screenshare Producer "close" event [originator:%s]', originator);
 
-					_this18._screenShareProducer = null;
+					_this18.screenShareProducer = null;
 					_this18._dispatch(stateActions.removeProducer(producer.id));
 				});
 
@@ -1439,6 +1442,8 @@ var RoomClient = function () {
 		value: function _updateWebcams() {
 			var _this20 = this;
 
+			if (!this._produce) return 0;
+
 			logger.debug('_updateWebcams()');
 
 			// Reset the list.
@@ -1499,6 +1504,8 @@ var RoomClient = function () {
 		key: '_updateMics',
 		value: function _updateMics() {
 			var _this21 = this;
+
+			if (!this._produce) return 0;
 
 			logger.debug('_updateMics()');
 			//console.log('inside updateMics()');
@@ -1644,6 +1651,10 @@ var RoomClient = function () {
 		value: function _handleConsumer(consumer) {
 			var _this23 = this;
 
+			if (this._skip_consumer && consumer.kind === 'audio') {
+				return;
+			}
+
 			var codec = consumer.rtpParameters.codecs[0];
 
 			this._dispatch(stateActions.addConsumer({
@@ -1710,8 +1721,8 @@ var RoomClient = function () {
 			var videoStream = new MediaStream(),
 			    audioStream = new MediaStream();
 
-			if (this._screenShareProducer) {
-				videoStream.addTrack(this._screenShareProducer.track);
+			if (this.screenShareProducer) {
+				videoStream.addTrack(this.screenShareProducer.track);
 			} else if (this._webcamProducer) {
 				videoStream.addTrack(this._webcamProducer.track);
 			}
