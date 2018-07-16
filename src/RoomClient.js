@@ -5,7 +5,6 @@ import { getProtooUrl } from './urlFactory';
 // import * as cookiesManager from './cookiesManager';
 import * as requestActions from './redux/requestActions';
 import * as stateActions from './redux/stateActions';
-import requestify from 'requestify';
 import axios from 'axios';
 import MediaStreamRecorder from 'msr';
 
@@ -19,7 +18,7 @@ const ROOM_OPTIONS =
 		tcp : false
 	}
 };
- 
+
 let DEFAULT_VIDEO_CONSTRAINS =
 {
 	qvga : { width: { ideal: 320 }, height: { ideal: 240 } },
@@ -63,7 +62,12 @@ export default class RoomClient
 
 		// Whether we should produce.
 		this._produce = args.produce;
-		
+
+
+		this._skip_consumer = args.skip_consumer;
+
+		this._user_uuid = args.user_uuid;
+
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
 
@@ -85,7 +89,7 @@ export default class RoomClient
 
 		//Инициализируем хранилище данных браузера пользователя
 		this._storage = window.localStorage;
-		
+
 		// Transport for sending.
 		this._sendTransport = null;
 
@@ -105,6 +109,7 @@ export default class RoomClient
 
 		// User screen capture mediasoup Producer.
 		this._screenShareProducer = null;
+		this._screenShareOriginalStream = null;
 
 		// Map of webcam MediaDeviceInfos indexed by deviceId.
 		// @type {Map<String, MediaDeviceInfos>}
@@ -220,12 +225,21 @@ export default class RoomClient
 	}
 
 	deactivateScreenShare(){
-		console.log('deactivateScreenShare()');
+		// console.log('deactivateScreenShare()');
 		if(!this._screenShareProducer) {
-			console.log("Error! Screen share producer doesn't exist");
+			logger.error("Error! Screen share producer doesn't exist");
+			// console.log("Error! Screen share producer doesn't exist");
 			return false;
 		}
+		// if(this._screenShareOriginalStream) console.log('stream exists');
+		this._screenShareOriginalStream.getTracks().forEach(track => {
+			// console.log('track stopped');
+			track.stop();
+		});
+		this._screenShareOriginalStream = null;
+		this._screenShareProducer.close();
 		this._screenShareProducer = null;
+		logger.debug('producer deactivated successfully');
 		return true;
 	}
 
@@ -336,7 +350,7 @@ export default class RoomClient
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
 
-				
+
 			})
 			.catch((error) =>
 			{
@@ -972,9 +986,9 @@ export default class RoomClient
 				this.close();
 			});
 	}
-	
+
 	_setMicProducer()
-	{	
+	{
 		if (!this._produce) return 0;
 		if (!this._room.canSend('audio'))
 		{
@@ -1005,7 +1019,7 @@ export default class RoomClient
 				.then((stream) =>
 				{
 					const track = stream.getAudioTracks()[0];
-					
+
 					producer = this._room.createProducer(track, null, { source: 'mic' });
 
 					//disable audio if it's muted
@@ -1252,12 +1266,13 @@ export default class RoomClient
 			})
 			.then((stream) =>
 			{
+				this._screenShareOriginalStream = stream;
 				const track = stream.getVideoTracks()[0];
 
 				return this._screenShareProducer.replaceTrack(track)
 					.then((newTrack) =>
 					{
-						track.stop();
+						// track.stop();
 
 						return newTrack;
 					});
@@ -1309,11 +1324,13 @@ export default class RoomClient
 				})
 				.then((stream) =>
 				{
+					this._screenShareOriginalStream = stream;
+					
 					const track = stream.getVideoTracks()[0];
 
 					producer = this._room.createProducer(
 						track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
-					track.stop();	
+					// track.stop();	
 
 					return producer.send(this._sendTransport);
 				})
@@ -1481,6 +1498,8 @@ export default class RoomClient
 
 	_updateWebcams()
 	{
+    if (!this._produce) return 0;
+
 		logger.debug('_updateWebcams()');
 
 		// Reset the list.
@@ -1531,6 +1550,8 @@ export default class RoomClient
 	}
 
 	_updateMics(){
+    if (!this._produce) return 0;
+
 		logger.debug('_updateMics()');
 		//console.log('inside updateMics()');
 
@@ -1564,7 +1585,7 @@ export default class RoomClient
 					this._mic = this._mics.get(storageMic);
 					return;
 				}
-				
+
 				const len = array.length;
 				const currentMicId =
 					this._mic ? this._mic.deviceId : undefined;
@@ -1652,6 +1673,10 @@ export default class RoomClient
 
 	_handleConsumer(consumer)
 	{
+    if(this._skip_consumer && consumer.kind === 'audio') {
+      return;
+    }
+
 		const codec = consumer.rtpParameters.codecs[0];
 
 		this._dispatch(stateActions.addConsumer(
@@ -1729,90 +1754,81 @@ export default class RoomClient
 		//TODO: переключение источника ввода видео
 	}
 
-	// record(interval){
-		// if(this._screenShareProducer){
-		// 	params.videoTrack = this._screenShareProducer.track;
-		// } else if(this._webcamProducer){
-		// 	params.videoTrack = this._webcamProducer.track;
-		// }
-		// if(this._micProducer){
-		// 	params.audio = Trackthis._micProducer.track;
-		// }
+	record(interval){
+		const dataType = { VIDEO : 'video', AUDIO : 'audio' };
 
-		// const dataType = { VIDEO : 'video', AUDIO : 'audio' };
+		console.log("Starting Media Recorder...");
+		let videoStream = new MediaStream(),
+			audioStream = new MediaStream();
 
-		// console.log("Starting Media Recorder...");
-		// let videoStream = new MediaStream(),
-		// 	audioStream = new MediaStream();
+		if(this._screenShareProducer){
+			videoStream.addTrack(this._screenShareProducer.track);
+		} else if(this._webcamProducer){
+			videoStream.addTrack(this._webcamProducer.track);
+		}
+		if(this._micProducer){
+			audioStream.addTrack(this._micProducer.track);
+		}
 
-		// if(this._screenShareProducer){
-		// 	videoStream.addTrack(this._screenShareProducer.track);
-		// } else if(this._webcamProducer){
-		// 	videoStream.addTrack(this._webcamProducer.track);
-		// }
-		// if(this._micProducer){
-		// 	audioStream.addTrack(this._micProducer.track);
-		// }
+		let videoOptions = { mimeType : 'video/webcam; codecs=vp8'};
+		let audioOptions = { mimeType : 'audio/ogg; codecs=opus'}
 
-		// let videoOptions = { mimeType : 'video/webcam; codecs=vp8'};
-		// let audioOptions = { mimeType : 'audio/ogg; codecs=opus'}
-
-		// //this._videoRecorder = new MediaStreamRecorder(videoStream, videoOptions);
-		// //this._audioRecorder = new MediaStreamRecorder(audioStream, audioOptions);
+		this._videoRecorder = new MediaStreamRecorder(videoStream, videoOptions);
+		this._audioRecorder = new MediaStreamRecorder(audioStream, audioOptions);
 
 		// this._videoRecorder = new RecordRtc(videoStream, videoOptions);
 		// this._audioRecorder = new RecordRtc(audioStream, audioOptions);
 
-		// this._videoRecorder.ondataavailable = (blob) => {
-		// 	uploadBlob(this._videoRecorder, blob, dataType.VIDEO);
-		// }
+		this._videoRecorder.ondataavailable = (blob) => {
+			uploadBlob(this._videoRecorder, blob, dataType.VIDEO);
+		}
 
-		// this._audioRecorder.ondataavailable = (blob) => {
-		// 	uploadBlob(this._audioRecorder, blob, dataType.AUDIO);
-		// }
+		this._audioRecorder.ondataavailable = (blob) => {
+			uploadBlob(this._audioRecorder, blob, dataType.AUDIO);
+		}
 
-		// axios.get('http://127.0.0.1:5000/begin')
-		// .then( (res) => {
-		// 	console.log('Server is ready, start sending data...');
+		axios.get('http://127.0.0.1:5000/begin')
+		.then( (res) => {
+			console.log('Server is ready, start sending data...');
 
-		// 	this._recordState = 'recording';
-		// 	this._videoRecorder.startRecording();
-		// 	this._audioRecorder.startRecording();
-		// });
+			this._recordState = 'recording';
+			this._videoRecorder.start(interval);
+			this._audioRecorder.start(interval);
+		});
 
-		// function uploadBlob(recorder, blob, datatype, index) {
-	 //     	let data = new FormData();
-	 //     	data.append('name', this._room.name + '-video-' + index);
-	 //        data.append('file', blob);
-	 //        data.append('datatype', datatype);
+		function uploadBlob(recorder, blob, datatype, index) {
+	     	let data = new FormData();
+	     	data.append('name', datatype + '-' + index);
+	        data.append('file', blob);
+	        data.append('datatype', datatype);
 
-	 //        let url = 'http://127.0.0.1:5000/data-' + datatype;
-	 //        axios.post(url, data)
-	 //        .then( (res) => {
-		// 		console.log(datatype + '-data blob sent.');
-		// 	})
-		// 	.catch( (err) => {
-		// 		console.log('error:' + err);
-		// 	});
-		// }
-	// }
+	        let url = 'http://127.0.0.1:5000/data-' + datatype;
+	        axios.post(url, data)
+	        .then( (res) => {
+				console.log(datatype + '-data blob sent.');
+			})
+			.catch( (err) => {
+				console.log('error:' + err);
+			});
+		}
+	}
 
-	// stopRecord() {
-		// console.log('Deactivating recorder...');
-		// this._recordState = 'inactive';
-		// this._audioRecorder.stop();
-		// this._videoRecorder.stop();
-		// setTimeout(this.finishRecord, 500);
-	// }
+	stopRecord() {
+		console.log('Deactivating recorder...');
+		this._recordState = 'inactive';
+		this._audioRecorder.stop();
+		this._videoRecorder.stop();
+		setTimeout(this.finishRecord, 500);
+	}
 
-	// finishRecord(){
-	// 	this._recordState = 'inactive';
-	// 	this._videoRecorder = null;
-	// 	this._audioRecorder = null;
-	// 	axios.get('http://127.0.0.1:5000/end')
-	// 	.then( (res) => {
-	// 		console.log('Data transfer complete')
-	// 		return 5;
-	// 	});
-	// }
+	finishRecord(){
+		this._recordState = 'inactive';
+		this._videoRecorder = null;
+		this._audioRecorder = null;
+		axios.get('http://127.0.0.1:5000/end')
+		.then( (res) => {
+			console.log('Data transfer complete')
+			return 5;
+		});
+	}
 }
