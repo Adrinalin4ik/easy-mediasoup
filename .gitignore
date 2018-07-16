@@ -2,4 +2,6 @@ node_modules
 recordings
 test
 dist/*
-es5-bundle
+es5-bundle/*
+test
+.idea

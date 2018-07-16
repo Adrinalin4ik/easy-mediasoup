@@ -18,7 +18,7 @@ const ROOM_OPTIONS =
 		tcp : false
 	}
 };
- 
+
 let DEFAULT_VIDEO_CONSTRAINS =
 {
 	qvga : { width: { ideal: 320 }, height: { ideal: 240 } },
@@ -61,7 +61,12 @@ export default class RoomClient
 		this._closed = false;
 
 		// Whether we should produce.
-		this._produce = produce;
+		this._produce = args.produce;
+
+
+		this._skip_consumer = args.skip_consumer;
+
+		this._user_uuid = args.user_uuid;
 
 		// Whether simulcast should be used.
 		this._useSimulcast = useSimulcast;
@@ -84,7 +89,7 @@ export default class RoomClient
 
 		//Инициализируем хранилище данных браузера пользователя
 		this._storage = window.localStorage;
-		
+
 		// Transport for sending.
 		this._sendTransport = null;
 
@@ -345,7 +350,7 @@ export default class RoomClient
 				this._dispatch(
 					stateActions.setWebcamInProgress(false));
 
-				
+
 			})
 			.catch((error) =>
 			{
@@ -922,11 +927,9 @@ export default class RoomClient
 						//canSendScreenShare : this._room.canSend('screen')
 					}));
 			})
-			.then(() =>
-			{
+			.then(() => {
 				// Don't produce if explicitely requested to not to do it.
-				if (!this._produce)
-					return;
+				if (!this._produce) return 0;
 
 				// NOTE: Don't depend on this Promise to continue (so we don't do return).
 				Promise.resolve()
@@ -951,8 +954,7 @@ export default class RoomClient
 						this._activateWebcam();
 					})
 			})
-			.then(() =>
-			{
+			.then(() => {
 				this._dispatch(stateActions.setRoomState('connected'));
 
 				// Clean all the existing notifcations.
@@ -984,12 +986,10 @@ export default class RoomClient
 				this.close();
 			});
 	}
-	
-	_setMicProducer()
-	{	
-		//console.log('inside mic producer');
-		//console.log(this._mic.deviceId);
 
+	_setMicProducer()
+	{
+		if (!this._produce) return 0;
 		if (!this._room.canSend('audio'))
 		{
 			return Promise.reject(
@@ -1019,7 +1019,7 @@ export default class RoomClient
 				.then((stream) =>
 				{
 					const track = stream.getAudioTracks()[0];
-					
+
 					producer = this._room.createProducer(track, null, { source: 'mic' });
 
 					//disable audio if it's muted
@@ -1107,6 +1107,7 @@ export default class RoomClient
 
 	_setWebcamProducer()
 	{
+		if (!this._produce) return 0;
 		if (!this._is_webcam_enabled) return 0
 
 		// if (!this._room.canSend('video'))
@@ -1497,6 +1498,8 @@ export default class RoomClient
 
 	_updateWebcams()
 	{
+    if (!this._produce) return 0;
+
 		logger.debug('_updateWebcams()');
 
 		// Reset the list.
@@ -1547,6 +1550,8 @@ export default class RoomClient
 	}
 
 	_updateMics(){
+    if (!this._produce) return 0;
+
 		logger.debug('_updateMics()');
 		//console.log('inside updateMics()');
 
@@ -1580,7 +1585,7 @@ export default class RoomClient
 					this._mic = this._mics.get(storageMic);
 					return;
 				}
-				
+
 				const len = array.length;
 				const currentMicId =
 					this._mic ? this._mic.deviceId : undefined;
@@ -1668,6 +1673,10 @@ export default class RoomClient
 
 	_handleConsumer(consumer)
 	{
+    if(this._skip_consumer && consumer.kind === 'audio') {
+      return;
+    }
+
 		const codec = consumer.rtpParameters.codecs[0];
 
 		this._dispatch(stateActions.addConsumer(

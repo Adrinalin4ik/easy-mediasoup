@@ -1,6 +1,6 @@
 {
   "name": "easy-mediasoup",
-  "version": "1.1.2",
+  "version": "1.1.9",
   "description": "Mediasoup overhead",
   "main": "./dist/easy-mediasoup.bundle.min.js",
   "scripts": {
@@ -25,6 +25,7 @@
     "url": "git+https://github.com/Adrinalin4ik/easy-mediasoup.git"
   },
   "keywords": [
+    "easy-mediasoup",
     "mediasoup",
     "webrtc",
     "sfu"
@@ -63,7 +64,7 @@
     "browserify": "^13.1.0",
     "chai": "^3.5.0",
     "http-server": "^0.2.2",
-    "mocha": "^3.1.2",
+    "mocha": "^5.2.0",
     "request": "^2.87.0",
     "selenium-webdriver": "^3.0.1",
     "tape": "^4.9.1",
