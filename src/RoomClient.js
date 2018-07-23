@@ -237,7 +237,7 @@ export default class RoomClient
 			track.stop();
 		});
 		this._screenShareOriginalStream = null;
-		this._screenShareProducer.close();
+		if(this._screenShareProducer) this._screenShareProducer.close();
 		this._screenShareProducer = null;
 		logger.debug('producer deactivated successfully');
 		return true;
