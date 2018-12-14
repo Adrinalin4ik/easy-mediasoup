@@ -15,7 +15,7 @@ const ROOM_OPTIONS =
 	requestTimeout   : 10000,
 	transportOptions :
 	{
-		tcp : false
+		tcp : true
 	}
 };
 
@@ -46,8 +46,8 @@ export default class RoomClient
 		const protooUrl = getProtooUrl(media_server_wss, peerName, roomId);
 		const protooTransport = new protooClient.WebSocketTransport(protooUrl);
 
-		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS
-		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS
+		VIDEO_CONSTRAINS = args.video_constrains;
+		SIMULCAST_OPTIONS = args.simulcast_options;
 
 		this.initially_muted =  args.initially_muted;
 		this.is_audio_initialized = false;
@@ -428,8 +428,9 @@ export default class RoomClient
 					{
 						deviceId : { exact: device.deviceId },
 						audio:false,
-						...VIDEO_CONSTRAINS[resolution],
-						video : true
+						video: {
+							...VIDEO_CONSTRAINS[resolution]
+						}
 					});
 			})
 			.then((stream) =>
@@ -506,8 +507,9 @@ export default class RoomClient
 					{
 						deviceId : { exact: device.deviceId },
 						audio:false,
-						...VIDEO_CONSTRAINS[resolution],
-						video : true
+						video: {
+							...VIDEO_CONSTRAINS[resolution]
+						}
 					});
 			})
 			.then((stream) =>
@@ -599,8 +601,9 @@ export default class RoomClient
 					{
 						deviceId : { exact: device.deviceId },
 						audio:false,
-						...VIDEO_CONSTRAINS[resolution],
-						video : true
+						video: {
+							...VIDEO_CONSTRAINS[resolution]
+						}
 					});
 			})
 			.then((stream) =>
@@ -1152,19 +1155,20 @@ export default class RoomClient
 					// 			...VIDEO_CONSTRAINS[resolution]
 					// 		}
 					// 	});
-
 					return navigator.mediaDevices.getUserMedia(
 					{
 						deviceId : { exact: device.deviceId },
 						audio:false,
-						...VIDEO_CONSTRAINS[resolution],
-						video : true
+						// ...VIDEO_CONSTRAINS[resolution],
+						// video : true
+						video: {
+							...VIDEO_CONSTRAINS[resolution]
+						}
 					});
 				})
 				.then((stream) =>
 				{
 					const track = stream.getVideoTracks()[0];
-
 					producer = this._room.createProducer(
 						track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
 
@@ -1474,8 +1478,9 @@ export default class RoomClient
 					{
 						deviceId : this._webcam.device.deviceId ? {exact: this._webcam.webcam.deviceId} : undefined,
 						audio : false,
-						...VIDEO_CONSTRAINS[resolution],
-						video : true
+						video: {
+							...VIDEO_CONSTRAINS[resolution]
+						}
 					});
 				})
 				.then( (stream) => {

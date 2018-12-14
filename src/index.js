@@ -24,7 +24,7 @@ import * as emitter from  "wildemitter"
 
 export class Init{
 	constructor(config){
-		console.warn('Easy mediasoup v1.1.9')
+		console.warn('Easy mediasoup v1.1.10')
 		global.emitter = this.emitter = new emitter.default()
 		this.roomClientMiddleware = roomClientMiddleware
 		const logger = new Logger();
@@ -63,7 +63,7 @@ export class Init{
 		);
 		//room settings
 		const peerName = config.peerName
-		// const urlParser = new UrlParse(window.location.href, true);
+
 		let roomId = config.roomId;
 		const produce = config.produce || true;
 		let displayName = config.displayName;
@@ -80,39 +80,8 @@ export class Init{
     args.skip_consumer = config.skip_consumer
 		args.user_uuid = config.user_uuid
 
-		// if (!roomId)
-		// {
-		// 	roomId = randomString({ length: 8 }).toLowerCase();
 
-		// 	urlParser.query.roomId = roomId;
-		// 	window.history.pushState('', '', urlParser.toString());
-		// }
-
-		// Get the effective/shareable Room URL.
-		// const roomUrlParser = new UrlParse(window.location.href, true);
-
-		// for (const key of Object.keys(roomUrlParser.query))
-		// {
-		// 	// Don't keep some custom params.
-		// 	switch (key)
-		// 	{
-		// 		case 'roomId':
-		// 		case 'simulcast':
-		// 			break;
-		// 		default:
-		// 			delete roomUrlParser.query[key];
-		// 	}
-		// }
-		// delete roomUrlParser.hash;
-
-		// const roomUrl = roomUrlParser.toString();
-
-		// Get displayName from cookie (if not already given as param).
-		// const userCookie = cookiesManager.getUser() || {};
 		let displayNameSet;
-
-		// if (!displayName)
-		// 	displayName = userCookie.displayName;
 
 		if (displayName)
 		{
@@ -135,9 +104,6 @@ export class Init{
 			device.version = undefined;
 		}
 
-		// // NOTE: I don't like this.
-		// store.dispatch(
-		// 	stateActions.setRoomUrl(roomUrl));
 
 		// NOTE: I don't like this.
 		store.dispatch(
@@ -148,43 +114,6 @@ export class Init{
 			requestActions.joinRoom(
 				{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers, args }));
 
-		// TODO: Debugging stuff.
-
-		// setInterval(() =>
-		// {
-		// 	if (!global.CLIENT._room.peers[0])
-		// 	{
-		// 		delete global.CONSUMER;
-
-		// 		return;
-		// 	}
-
-		// 	const peer = global.CLIENT._room.peers[0];
-
-		// 	global.CONSUMER = peer.consumers[peer.consumers.length - 1];
-		// }, 2000);
-
-		// global.sendSdp = function()
-		// {
-		// 	logger.debug('---------- SEND_TRANSPORT LOCAL SDP OFFER:');
-		// 	logger.debug(
-		// 		global.CLIENT._sendTransport._handler._pc.localDescription.sdp);
-
-		// 	logger.debug('---------- SEND_TRANSPORT REMOTE SDP ANSWER:');
-		// 	logger.debug(
-		// 		global.CLIENT._sendTransport._handler._pc.remoteDescription.sdp);
-		// };
-
-		// global.recvSdp = function()
-		// {
-		// 	logger.debug('---------- RECV_TRANSPORT REMOTE SDP OFFER:');
-		// 	logger.debug(
-		// 		global.CLIENT._recvTransport._handler._pc.remoteDescription.sdp);
-
-		// 	logger.debug('---------- RECV_TRANSPORT LOCAL SDP ANSWER:');
-		// 	logger.debug(
-		// 		global.CLIENT._recvTransport._handler._pc.localDescription.sdp);
-		// };
 	}
 
 }

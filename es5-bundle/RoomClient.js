@@ -72,7 +72,7 @@ var logger = new _Logger2.default('RoomClient');
 var ROOM_OPTIONS = {
 	requestTimeout: 10000,
 	transportOptions: {
-		tcp: false
+		tcp: true
 	}
 };
 
@@ -110,8 +110,8 @@ var RoomClient = function () {
 		var protooUrl = (0, _urlFactory.getProtooUrl)(media_server_wss, peerName, roomId);
 		var protooTransport = new _protooClient2.default.WebSocketTransport(protooUrl);
 
-		VIDEO_CONSTRAINS = args.video_constrains.length != 0 ? args.video_constrains : DEFAULT_VIDEO_CONSTRAINS;
-		SIMULCAST_OPTIONS = args.simulcast_options.length != 0 ? args.simulcast_options : DEFAULT_SIMULCAST_OPTIONS;
+		VIDEO_CONSTRAINS = args.video_constrains;
+		SIMULCAST_OPTIONS = args.simulcast_options;
 
 		this.initially_muted = args.initially_muted;
 		this.is_audio_initialized = false;
@@ -464,12 +464,11 @@ var RoomClient = function () {
 				// 	});
 
 				//return getScreenShare();
-				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+				return navigator.mediaDevices.getUserMedia({
 					deviceId: { exact: device.deviceId },
-					audio: false
-				}, VIDEO_CONSTRAINS[resolution], {
-					video: true
-				}));
+					audio: false,
+					video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
+				});
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
@@ -531,12 +530,11 @@ var RoomClient = function () {
 
 				//return getScreenShare();
 
-				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+				return navigator.mediaDevices.getUserMedia({
 					deviceId: { exact: device.deviceId },
-					audio: false
-				}, VIDEO_CONSTRAINS[resolution], {
-					video: true
-				}));
+					audio: false,
+					video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
+				});
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
@@ -611,12 +609,11 @@ var RoomClient = function () {
 
 				//return getScreenShare();
 
-				return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+				return navigator.mediaDevices.getUserMedia({
 					deviceId: { exact: device.deviceId },
-					audio: false
-				}, VIDEO_CONSTRAINS[resolution], {
-					video: true
-				}));
+					audio: false,
+					video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
+				});
 			}).then(function (stream) {
 				var track = stream.getVideoTracks()[0];
 
@@ -1174,16 +1171,15 @@ var RoomClient = function () {
 					// 			...VIDEO_CONSTRAINS[resolution]
 					// 		}
 					// 	});
-
-					return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+					return navigator.mediaDevices.getUserMedia({
 						deviceId: { exact: device.deviceId },
-						audio: false
-					}, VIDEO_CONSTRAINS[resolution], {
-						video: true
-					}));
+						audio: false,
+						// ...VIDEO_CONSTRAINS[resolution],
+						// video : true
+						video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
+					});
 				}).then(function (stream) {
 					var track = stream.getVideoTracks()[0];
-
 					producer = _this16._room.createProducer(track, { simulcast: _this16._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'webcam' });
 
 					// No need to keep original track.
@@ -1428,12 +1424,11 @@ var RoomClient = function () {
 				}).then(function () {
 					_this19._webcam.device = device;
 
-					return navigator.mediaDevices.getUserMedia((0, _extends3.default)({
+					return navigator.mediaDevices.getUserMedia({
 						deviceId: _this19._webcam.device.deviceId ? { exact: _this19._webcam.webcam.deviceId } : undefined,
-						audio: false
-					}, VIDEO_CONSTRAINS[resolution], {
-						video: true
-					}));
+						audio: false,
+						video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
+					});
 				}).then(function (stream) {
 					var track = stream.getVideoTracks()[0];
 

@@ -1,4 +1,11 @@
 {
-  "presets": ["es2015"],
+  "presets": [
+    ["es2015", {
+      "targets": {
+        "node": "current",
+        "uglify": true 
+      }
+    }]
+  ],
   "plugins": ["transform-object-rest-spread","transform-runtime","transform-object-assign"]
 }
