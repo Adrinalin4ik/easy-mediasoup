@@ -69,6 +69,7 @@ var Logger = function () {
 exports.default = Logger;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48,"debug":151}],2:[function(require,module,exports){
+(function (global){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -904,6 +905,28 @@ var RoomClient = function () {
 				logger.warn('protoo Peer "close" event');
 
 				if (_this13._room._state != "joined") _this13.close();
+			});
+
+			this._protoo.on("notification", function (notification) {
+				switch (notification.method) {
+					case 'active-speakers':
+						var speakers = notification.data;
+
+						global.emitter.emit('active-speakers', speakers);
+
+						break;
+					case 'active-speaker':
+						var peerName = notification.data.peerName;
+
+
+						_this13._dispatch(stateActions.setRoomActiveSpeaker(peerName));
+
+						break;
+					default:
+						global.emitter.emit('notification', notification);
+						break;
+				}
+				global.emitter.emit('notification');
 			});
 
 			this._protoo.on('request', function (request, accept, reject) {
@@ -1876,6 +1899,7 @@ var RoomClient = function () {
 }();
 
 exports.default = RoomClient;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./Logger":1,"./redux/requestActions":11,"./redux/stateActions":13,"./urlFactory":14,"axios":16,"babel-runtime/core-js/array/from":41,"babel-runtime/core-js/get-iterator":42,"babel-runtime/core-js/map":43,"babel-runtime/core-js/promise":46,"babel-runtime/helpers/classCallCheck":47,"babel-runtime/helpers/createClass":48,"babel-runtime/helpers/extends":50,"mediasoup-client":194,"msr":202,"protoo-client":206}],3:[function(require,module,exports){
 (function (process,global){
 'use strict';
@@ -1938,7 +1962,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.1.10');
+	console.warn('Easy mediasoup v1.2.0');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -2016,7 +2040,7 @@ var Init = exports.Init = function Init(config) {
 // import { render } from 'react-dom';
 // import { Provider } from 'react-redux';
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Logger":1,"./redux/reducers":5,"./redux/requestActions":11,"./redux/roomClientMiddleware":12,"./redux/stateActions":13,"./utils":15,"_process":203,"babel-runtime/helpers/classCallCheck":47,"mediasoup-client":194,"redux":220,"redux-logger":213,"redux-thunk":214,"wildemitter":235}],4:[function(require,module,exports){
+},{"./Logger":1,"./redux/reducers":5,"./redux/requestActions":11,"./redux/roomClientMiddleware":12,"./redux/stateActions":13,"./utils":15,"_process":203,"babel-runtime/helpers/classCallCheck":47,"mediasoup-client":194,"redux":229,"redux-logger":222,"redux-thunk":223,"wildemitter":238}],4:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -2168,7 +2192,7 @@ var reducers = (0, _redux.combineReducers)({
 });
 
 exports.default = reducers;
-},{"./consumers":4,"./me":6,"./notifications":7,"./peers":8,"./producers":9,"./room":10,"redux":220}],6:[function(require,module,exports){
+},{"./consumers":4,"./me":6,"./notifications":7,"./peers":8,"./producers":9,"./room":10,"redux":229}],6:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -2720,7 +2744,7 @@ var notify = exports.notify = function notify(_ref2) {
 		}, timeout);
 	};
 };
-},{"./stateActions":13,"random-string":212}],12:[function(require,module,exports){
+},{"./stateActions":13,"random-string":221}],12:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -12701,7 +12725,7 @@ function () {
 }();
 
 exports.default = Chrome55;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":226}],176:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":232}],176:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13283,7 +13307,7 @@ function () {
 }();
 
 exports.default = Chrome67;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":226}],177:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":232}],177:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -13874,7 +13898,7 @@ function () {
 }();
 
 exports.default = Chrome69;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":226}],178:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":232}],178:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14470,7 +14494,7 @@ function () {
 }();
 
 exports.default = Chrome70;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":226}],179:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":232}],179:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -15666,7 +15690,7 @@ function () {
 }();
 
 exports.default = Firefox50;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":226}],181:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":232}],181:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16311,7 +16335,7 @@ function () {
 }();
 
 exports.default = Firefox59;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":226}],182:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":232}],182:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16969,7 +16993,7 @@ function () {
 }();
 
 exports.default = Firefox65;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":226}],183:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":232}],183:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -17624,7 +17648,7 @@ function () {
 }();
 
 exports.default = ReactNative;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":226}],184:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":232}],184:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18196,7 +18220,7 @@ function () {
 }();
 
 exports.default = Safari11;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":226}],185:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemotePlanBSdp":188,"./sdp/commonUtils":190,"./sdp/planBUtils":192,"sdp-transform":232}],185:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18790,7 +18814,7 @@ function () {
 }();
 
 exports.default = Safari12;
-},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":226}],186:[function(require,module,exports){
+},{"../EnhancedEventEmitter":168,"../Logger":169,"../ortc":196,"../utils":197,"./sdp/RemoteUnifiedPlanSdp":189,"./sdp/commonUtils":190,"./sdp/unifiedPlanUtils":193,"sdp-transform":232}],186:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -19535,7 +19559,7 @@ var RemotePlainRtpSdp = function RemotePlainRtpSdp(direction, rtpParametersByKin
 };
 
 exports.default = RemotePlainRtpSdp;
-},{"../../Logger":169,"../../utils":197,"sdp-transform":226}],188:[function(require,module,exports){
+},{"../../Logger":169,"../../utils":197,"sdp-transform":232}],188:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -20272,7 +20296,7 @@ var RemotePlanBSdp = function RemotePlanBSdp(direction, rtpParametersByKind) {
 };
 
 exports.default = RemotePlanBSdp;
-},{"../../Logger":169,"../../utils":197,"sdp-transform":226}],189:[function(require,module,exports){
+},{"../../Logger":169,"../../utils":197,"sdp-transform":232}],189:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21035,7 +21059,7 @@ var RemoteUnifiedPlanSdp = function RemoteUnifiedPlanSdp(direction, rtpParameter
 };
 
 exports.default = RemoteUnifiedPlanSdp;
-},{"../../Logger":169,"../../utils":197,"sdp-transform":226}],190:[function(require,module,exports){
+},{"../../Logger":169,"../../utils":197,"sdp-transform":232}],190:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21297,7 +21321,7 @@ function getFirstActiveMediaSection(sdpObj) {
     return m.iceUfrag && m.port !== 0;
   });
 }
-},{"sdp-transform":226}],191:[function(require,module,exports){
+},{"sdp-transform":232}],191:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -22883,7 +22907,7 @@ function randomNumber() {
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
-},{"random-number":211}],198:[function(require,module,exports){
+},{"random-number":220}],198:[function(require,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -26171,43 +26195,48 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],204:[function(require,module,exports){
-'use strict';
+const logger = require('./logger')('Message');
+const utils = require('./utils');
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+class Message
+{
+	static parse(raw)
+	{
+		let object;
+		const message = {};
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+		try
+		{
+			object = JSON.parse(raw);
+		}
+		catch (error)
+		{
+			logger.error('parse() | invalid JSON: %s', error);
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+			return;
+		}
 
-var logger = require('./logger')('Message');
-var utils = require('./utils');
+		if (typeof object !== 'object' || Array.isArray(object))
+		{
+			logger.error('parse() | not an object');
 
-var Message = function () {
-	function Message() {
-		_classCallCheck(this, Message);
-	}
+			return;
+		}
 
-	_createClass(Message, null, [{
-		key: 'parse',
-		value: function parse(raw) {
-			var object = void 0;
-			var message = {};
+		// Request.
+		if (object.request)
+		{
+			message.request = true;
 
-			try {
-				object = JSON.parse(raw);
-			} catch (error) {
-				logger.error('parse() | invalid JSON: %s', error);
+			if (typeof object.method !== 'string')
+			{
+				logger.error('parse() | missing/invalid method field');
 
 				return;
 			}
 
-			if ((typeof object === 'undefined' ? 'undefined' : _typeof(object)) !== 'object' || Array.isArray(object)) {
-				logger.error('parse() | not an object');
-
-				return;
-			}
-
-			if (typeof object.id !== 'number') {
+			if (typeof object.id !== 'number')
+			{
 				logger.error('parse() | missing/invalid id field');
 
 				return;
@@ -26215,354 +26244,423 @@ var Message = function () {
 
 			message.id = object.id;
 
-			// Request.
-			if (object.request) {
-				message.request = true;
+			message.method = object.method;
+			message.data = object.data || {};
+		}
+		// Response.
+		else if (object.response)
+		{
+			message.response = true;
 
-				if (typeof object.method !== 'string') {
-					logger.error('parse() | missing/invalid method field');
+			if (typeof object.id !== 'number')
+			{
+				logger.error('parse() | missing/invalid id field');
 
-					return;
-				}
+				return;
+			}
 
-				message.method = object.method;
+			message.id = object.id;
+
+			// Success.
+			if (object.ok)
+			{
+				message.ok = true;
 				message.data = object.data || {};
 			}
-			// Response.
-			else if (object.response) {
-					message.response = true;
-
-					// Success.
-					if (object.ok) {
-						message.ok = true;
-						message.data = object.data || {};
-					}
-					// Error.
-					else {
-							message.errorCode = object.errorCode;
-							message.errorReason = object.errorReason;
-						}
-				}
-				// Invalid.
-				else {
-						logger.error('parse() | missing request/response field');
-
-						return;
-					}
-
-			return message;
+			// Error.
+			else
+			{
+				message.errorCode = object.errorCode;
+				message.errorReason = object.errorReason;
+			}
 		}
-	}, {
-		key: 'requestFactory',
-		value: function requestFactory(method, data) {
-			var request = {
-				request: true,
-				id: utils.randomNumber(),
-				method: method,
-				data: data || {}
-			};
+		// Notification.
+		else if (object.notification)
+		{
+			message.notification = true;
 
-			return request;
+			if (typeof object.method !== 'string')
+			{
+				logger.error('parse() | missing/invalid method field');
+
+				return;
+			}
+
+			message.method = object.method;
+			message.data = object.data || {};
 		}
-	}, {
-		key: 'successResponseFactory',
-		value: function successResponseFactory(request, data) {
-			var response = {
-				response: true,
-				id: request.id,
-				ok: true,
-				data: data || {}
-			};
+		// Invalid.
+		else
+		{
+			logger.error('parse() | missing request/response field');
 
-			return response;
+			return;
 		}
-	}, {
-		key: 'errorResponseFactory',
-		value: function errorResponseFactory(request, errorCode, errorReason) {
-			var response = {
-				response: true,
-				id: request.id,
-				errorCode: errorCode,
-				errorReason: errorReason
-			};
 
-			return response;
-		}
-	}]);
-
-	return Message;
-}();
-
-module.exports = Message;
-},{"./logger":207,"./utils":210}],205:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var EventEmitter = require('events').EventEmitter;
-var logger = require('./logger')('Peer');
-var Message = require('./Message');
-
-// Max time waiting for a response.
-var REQUEST_TIMEOUT = 20000;
-
-var Peer = function (_EventEmitter) {
-	_inherits(Peer, _EventEmitter);
-
-	function Peer(transport) {
-		_classCallCheck(this, Peer);
-
-		logger.debug('constructor()');
-
-		var _this = _possibleConstructorReturn(this, (Peer.__proto__ || Object.getPrototypeOf(Peer)).call(this));
-
-		_this.setMaxListeners(Infinity);
-
-		// Transport.
-		_this._transport = transport;
-
-		// Closed flag.
-		_this._closed = false;
-
-		// Custom data object.
-		_this._data = {};
-
-		// Map of sent requests' handlers indexed by request.id.
-		_this._requestHandlers = new Map();
-
-		// Handle transport.
-		_this._handleTransport();
-		return _this;
+		return message;
 	}
 
-	_createClass(Peer, [{
-		key: 'send',
-		value: function send(method, data) {
-			var _this2 = this;
+	static requestFactory(method, data)
+	{
+		const request =
+		{
+			request : true,
+			id      : utils.randomNumber(),
+			method  : method,
+			data    : data || {}
+		};
 
-			var request = Message.requestFactory(method, data);
+		return request;
+	}
 
-			return this._transport.send(request).then(function () {
-				return new Promise(function (pResolve, pReject) {
-					var handler = {
-						resolve: function resolve(data2) {
-							if (!_this2._requestHandlers.delete(request.id)) return;
+	static successResponseFactory(request, data)
+	{
+		const response =
+		{
+			response : true,
+			id       : request.id,
+			ok       : true,
+			data     : data || {}
+		};
+
+		return response;
+	}
+
+	static errorResponseFactory(request, errorCode, errorReason)
+	{
+		const response =
+		{
+			response    : true,
+			id          : request.id,
+			errorCode   : errorCode,
+			errorReason : errorReason
+		};
+
+		return response;
+	}
+
+	static notificationFactory(method, data)
+	{
+		const notification =
+		{
+			notification : true,
+			method       : method,
+			data         : data || {}
+		};
+
+		return notification;
+	}
+}
+
+module.exports = Message;
+
+},{"./logger":207,"./utils":210}],205:[function(require,module,exports){
+const EventEmitter = require('events').EventEmitter;
+const logger = require('./logger')('Peer');
+const Message = require('./Message');
+
+// Max time waiting for a response.
+const REQUEST_TIMEOUT = 20000;
+
+class Peer extends EventEmitter
+{
+	constructor(transport)
+	{
+		logger.debug('constructor()');
+
+		super();
+		this.setMaxListeners(Infinity);
+
+		// Transport.
+		this._transport = transport;
+
+		// Closed flag.
+		this._closed = false;
+
+		// Custom data object.
+		this._data = {};
+
+		// Map of sent requests' handlers indexed by request.id.
+		this._requestHandlers = new Map();
+
+		// Handle transport.
+		this._handleTransport();
+	}
+
+	get data()
+	{
+		return this._data;
+	}
+
+	set data(obj)
+	{
+		this._data = obj || {};
+	}
+
+	get closed()
+	{
+		return this._closed;
+	}
+
+	send(method, data)
+	{
+		const request = Message.requestFactory(method, data);
+
+		return this._transport.send(request)
+			.then(() =>
+			{
+				return new Promise((pResolve, pReject) =>
+				{
+					const handler =
+					{
+						resolve : (data2) =>
+						{
+							if (!this._requestHandlers.delete(request.id))
+								return;
 
 							clearTimeout(handler.timer);
 							pResolve(data2);
 						},
 
-						reject: function reject(error) {
-							if (!_this2._requestHandlers.delete(request.id)) return;
+						reject : (error) =>
+						{
+							if (!this._requestHandlers.delete(request.id))
+								return;
 
 							clearTimeout(handler.timer);
 							pReject(error);
 						},
 
-						timer: setTimeout(function () {
-							if (!_this2._requestHandlers.delete(request.id)) return;
+						timer : setTimeout(() =>
+						{
+							if (!this._requestHandlers.delete(request.id))
+								return;
 
 							pReject(new Error('request timeout'));
 						}, REQUEST_TIMEOUT),
 
-						close: function close() {
+						close : () =>
+						{
 							clearTimeout(handler.timer);
 							pReject(new Error('peer closed'));
 						}
 					};
 
 					// Add handler stuff to the Map.
-					_this2._requestHandlers.set(request.id, handler);
+					this._requestHandlers.set(request.id, handler);
 				});
 			});
-		}
-	}, {
-		key: 'close',
-		value: function close() {
-			logger.debug('close()');
+	}
 
-			if (this._closed) return;
+	notify(method, data)
+	{
+		const notification = Message.notificationFactory(method, data);
+
+		return this._transport.send(notification);
+	}
+
+	close()
+	{
+		logger.debug('close()');
+
+		if (this._closed)
+			return;
+
+		this._closed = true;
+
+		// Close transport.
+		this._transport.close();
+
+		// Close every pending request handler.
+		this._requestHandlers.forEach((handler) => handler.close());
+
+		// Emit 'close' event.
+		this.emit('close');
+	}
+
+	_handleTransport()
+	{
+		if (this._transport.closed)
+		{
+			this._closed = true;
+			setTimeout(() => this.emit('close'));
+
+			return;
+		}
+
+		this._transport.on('connecting', (currentAttempt) =>
+		{
+			logger.debug('emit "connecting" [currentAttempt:%s]', currentAttempt);
+
+			this.emit('connecting', currentAttempt);
+		});
+
+		this._transport.on('open', () =>
+		{
+			if (this._closed)
+				return;
+
+			logger.debug('emit "open"');
+
+			// Emit 'open' event.
+			this.emit('open');
+		});
+
+		this._transport.on('disconnected', () =>
+		{
+			logger.debug('emit "disconnected"');
+
+			this.emit('disconnected');
+		});
+
+		this._transport.on('failed', (currentAttempt) =>
+		{
+			logger.debug('emit "failed" [currentAttempt:%s]', currentAttempt);
+
+			this.emit('failed', currentAttempt);
+		});
+
+		this._transport.on('close', () =>
+		{
+			if (this._closed)
+				return;
 
 			this._closed = true;
 
-			// Close transport.
-			this._transport.close();
-
-			// Close every pending request handler.
-			this._requestHandlers.forEach(function (handler) {
-				return handler.close();
-			});
+			logger.debug('emit "close"');
 
 			// Emit 'close' event.
 			this.emit('close');
-		}
-	}, {
-		key: '_handleTransport',
-		value: function _handleTransport() {
-			var _this3 = this;
+		});
 
-			if (this._transport.closed) {
-				this._closed = true;
-				setTimeout(function () {
-					return _this3.emit('close');
-				});
-
-				return;
+		this._transport.on('message', (message) =>
+		{
+			if (message.request)
+			{
+				this._handleRequest(message);
 			}
-
-			this._transport.on('connecting', function (currentAttempt) {
-				_this3.emit('connecting', currentAttempt);
-			});
-
-			this._transport.on('open', function () {
-				if (_this3._closed) return;
-
-				// Emit 'open' event.
-				_this3.emit('open');
-			});
-
-			this._transport.on('disconnected', function () {
-				_this3.emit('disconnected');
-			});
-
-			this._transport.on('failed', function (currentAttempt) {
-				_this3.emit('failed', currentAttempt);
-			});
-
-			this._transport.on('close', function () {
-				if (_this3._closed) return;
-
-				_this3._closed = true;
-
-				// Emit 'close' event.
-				_this3.emit('close');
-			});
-
-			this._transport.on('message', function (message) {
-				if (message.response) {
-					_this3._handleResponse(message);
-				} else if (message.request) {
-					_this3._handleRequest(message);
-				}
-			});
-		}
-	}, {
-		key: '_handleResponse',
-		value: function _handleResponse(response) {
-			var handler = this._requestHandlers.get(response.id);
-
-			if (!handler) {
-				logger.error('received response does not match any sent request');
-
-				return;
+			else if (message.response)
+			{
+				this._handleResponse(message);
 			}
-
-			if (response.ok) {
-				handler.resolve(response.data);
-			} else {
-				var error = new Error(response.errorReason);
-
-				error.code = response.errorCode;
-				handler.reject(error);
+			else if (message.notification)
+			{
+				this._handleNotification(message);
 			}
-		}
-	}, {
-		key: '_handleRequest',
-		value: function _handleRequest(request) {
-			var _this4 = this;
+		});
+	}
 
-			this.emit('request',
+	_handleRequest(request)
+	{
+		this.emit('request',
 			// Request.
 			request,
 			// accept() function.
-			function (data) {
-				var response = Message.successResponseFactory(request, data);
+			(data) =>
+			{
+				const response = Message.successResponseFactory(request, data);
 
-				_this4._transport.send(response).catch(function (error) {
-					logger.warn('accept() failed, response could not be sent: %o', error);
-				});
+				this._transport.send(response)
+					.catch((error) =>
+					{
+						logger.warn(
+							'accept() failed, response could not be sent: %o', error);
+					});
 			},
 			// reject() function.
-			function (errorCode, errorReason) {
-				if (errorCode instanceof Error) {
+			(errorCode, errorReason) =>
+			{
+				if (errorCode instanceof Error)
+				{
 					errorReason = errorCode.toString();
 					errorCode = 500;
-				} else if (typeof errorCode === 'number' && errorReason instanceof Error) {
+				}
+				else if (typeof errorCode === 'number' && errorReason instanceof Error)
+				{
 					errorReason = errorReason.toString();
 				}
 
-				var response = Message.errorResponseFactory(request, errorCode, errorReason);
+				const response =
+					Message.errorResponseFactory(request, errorCode, errorReason);
 
-				_this4._transport.send(response).catch(function (error) {
-					logger.warn('reject() failed, response could not be sent: %o', error);
-				});
+				this._transport.send(response)
+					.catch((error) =>
+					{
+						logger.warn(
+							'reject() failed, response could not be sent: %o', error);
+					});
 			});
-		}
-	}, {
-		key: 'data',
-		get: function get() {
-			return this._data;
-		},
-		set: function set(obj) {
-			this._data = obj || {};
-		}
-	}, {
-		key: 'closed',
-		get: function get() {
-			return this._closed;
-		}
-	}]);
+	}
 
-	return Peer;
-}(EventEmitter);
+	_handleResponse(response)
+	{
+		const handler = this._requestHandlers.get(response.id);
+
+		if (!handler)
+		{
+			logger.error('received response does not match any sent request');
+
+			return;
+		}
+
+		if (response.ok)
+		{
+			handler.resolve(response.data);
+		}
+		else
+		{
+			const error = new Error(response.errorReason);
+
+			error.code = response.errorCode;
+			handler.reject(error);
+		}
+	}
+
+	_handleNotification(notification)
+	{
+		this.emit('notification', notification);
+	}
+}
 
 module.exports = Peer;
+
 },{"./Message":204,"./logger":207,"events":153}],206:[function(require,module,exports){
-'use strict';
+const Peer = require('./Peer');
+const transports = require('./transports');
 
-var Peer = require('./Peer');
-var transports = require('./transports');
-
-module.exports = {
+module.exports =
+{
 	/**
-  * Expose Peer.
-  */
-	Peer: Peer,
+	 * Expose Peer.
+	 */
+	Peer : Peer,
 
 	/**
-  * Expose the built-in WebSocketTransport.
-  */
-	WebSocketTransport: transports.WebSocketTransport
+	 * Expose the built-in WebSocketTransport.
+	 */
+	WebSocketTransport : transports.WebSocketTransport
 };
+
 },{"./Peer":205,"./transports":209}],207:[function(require,module,exports){
-'use strict';
+const debug = require('debug');
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+const APP_NAME = 'protoo-client';
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var debug = require('debug');
-
-var APP_NAME = 'protoo-client';
-
-var Logger = function () {
-	function Logger(prefix) {
-		_classCallCheck(this, Logger);
-
-		if (prefix) {
-			this._debug = debug(APP_NAME + ':' + prefix);
-			this._warn = debug(APP_NAME + ':WARN:' + prefix);
-			this._error = debug(APP_NAME + ':ERROR:' + prefix);
-		} else {
+class Logger
+{
+	constructor(prefix)
+	{
+		if (prefix)
+		{
+			this._debug = debug(`${APP_NAME}:${prefix}`);
+			this._warn = debug(`${APP_NAME}:WARN:${prefix}`);
+			this._error = debug(`${APP_NAME}:ERROR:${prefix}`);
+		}
+		else
+		{
 			this._debug = debug(APP_NAME);
-			this._warn = debug(APP_NAME + ':WARN');
-			this._error = debug(APP_NAME + ':ERROR');
+			this._warn = debug(`${APP_NAME}:WARN`);
+			this._error = debug(`${APP_NAME}:ERROR`);
 		}
 
 		/* eslint-disable no-console */
@@ -26572,236 +26670,935 @@ var Logger = function () {
 		/* eslint-enable no-console */
 	}
 
-	_createClass(Logger, [{
-		key: 'debug',
-		get: function get() {
-			return this._debug;
-		}
-	}, {
-		key: 'warn',
-		get: function get() {
-			return this._warn;
-		}
-	}, {
-		key: 'error',
-		get: function get() {
-			return this._error;
-		}
-	}]);
-
-	return Logger;
-}();
-
-module.exports = function (prefix) {
-	return new Logger(prefix);
-};
-},{"debug":151}],208:[function(require,module,exports){
-'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var EventEmitter = require('events').EventEmitter;
-var W3CWebSocket = require('websocket').w3cwebsocket;
-var retry = require('retry');
-var logger = require('../logger')('WebSocketTransport');
-var Message = require('../Message');
-
-var WS_SUBPROTOCOL = 'protoo';
-var DEFAULT_RETRY_OPTIONS = {
-	retries: 10,
-	factor: 2,
-	minTimeout: 1 * 1000,
-	maxTimeout: 8 * 1000
-};
-
-var WebSocketTransport = function (_EventEmitter) {
-	_inherits(WebSocketTransport, _EventEmitter);
-
-	function WebSocketTransport(url, options) {
-		_classCallCheck(this, WebSocketTransport);
-
-		logger.debug('constructor() [url:"%s", options:%o]', url, options);
-
-		var _this = _possibleConstructorReturn(this, (WebSocketTransport.__proto__ || Object.getPrototypeOf(WebSocketTransport)).call(this));
-
-		_this.setMaxListeners(Infinity);
-
-		// Save URL and options.
-		_this._url = url;
-		_this._options = options || {};
-
-		// WebSocket instance.
-		_this._ws = null;
-
-		// Closed flag.
-		_this._closed = false;
-
-		// Set WebSocket
-		_this._setWebSocket();
-		return _this;
+	get debug()
+	{
+		return this._debug;
 	}
 
-	_createClass(WebSocketTransport, [{
-		key: 'send',
-		value: function send(message) {
-			if (this._closed) return Promise.reject(new Error('transport closed'));
+	get warn()
+	{
+		return this._warn;
+	}
 
-			try {
-				this._ws.send(JSON.stringify(message));
+	get error()
+	{
+		return this._error;
+	}
+}
 
-				return Promise.resolve();
-			} catch (error) {
-				logger.error('send() | error sending message: %o', error);
+module.exports = function(prefix)
+{
+	return new Logger(prefix);
+};
 
-				return Promise.reject(error);
-			}
+},{"debug":211}],208:[function(require,module,exports){
+const EventEmitter = require('events').EventEmitter;
+const W3CWebSocket = require('websocket').w3cwebsocket;
+const retry = require('retry');
+const logger = require('../logger')('WebSocketTransport');
+const Message = require('../Message');
+
+const WS_SUBPROTOCOL = 'protoo';
+const DEFAULT_RETRY_OPTIONS =
+{
+	retries    : 10,
+	factor     : 2,
+	minTimeout : 1 * 1000,
+	maxTimeout : 8 * 1000
+};
+
+class WebSocketTransport extends EventEmitter
+{
+	constructor(url, options)
+	{
+		logger.debug('constructor() [url:"%s", options:%o]', url, options);
+
+		super();
+		this.setMaxListeners(Infinity);
+
+		// Save URL and options.
+		this._url = url;
+		this._options = options || {};
+
+		// WebSocket instance.
+		this._ws = null;
+
+		// Closed flag.
+		this._closed = false;
+
+		// Set WebSocket
+		this._setWebSocket();
+	}
+
+	get closed()
+	{
+		return this._closed;
+	}
+
+	send(message)
+	{
+		if (this._closed)
+			return Promise.reject(new Error('transport closed'));
+
+		try
+		{
+			this._ws.send(JSON.stringify(message));
+
+			return Promise.resolve();
 		}
-	}, {
-		key: 'close',
-		value: function close() {
-			logger.debug('close()');
+		catch (error)
+		{
+			logger.error('send() | error sending message: %o', error);
 
-			if (this._closed) return;
-
-			// Don't wait for the WebSocket 'close' event, do it now.
-			this._closed = true;
-			this.emit('close');
-
-			try {
-				this._ws.onopen = null;
-				this._ws.onclose = null;
-				this._ws.onerror = null;
-				this._ws.onmessage = null;
-				this._ws.close();
-			} catch (error) {
-				logger.error('close() | error closing the WebSocket: %o', error);
-			}
+			return Promise.reject(error);
 		}
-	}, {
-		key: '_setWebSocket',
-		value: function _setWebSocket() {
-			var _this2 = this;
+	}
 
-			var options = this._options;
-			var operation = retry.operation(this._options.retry || DEFAULT_RETRY_OPTIONS);
-			var wasConnected = false;
+	close()
+	{
+		logger.debug('close()');
 
-			operation.attempt(function (currentAttempt) {
-				if (_this2._closed) {
-					operation.stop();
+		if (this._closed)
+			return;
+
+		// Don't wait for the WebSocket 'close' event, do it now.
+		this._closed = true;
+		this.emit('close');
+
+		try
+		{
+			this._ws.onopen = null;
+			this._ws.onclose = null;
+			this._ws.onerror = null;
+			this._ws.onmessage = null;
+			this._ws.close();
+		}
+		catch (error)
+		{
+			logger.error('close() | error closing the WebSocket: %o', error);
+		}
+	}
+
+	_setWebSocket()
+	{
+		const options = this._options;
+		const operation = retry.operation(this._options.retry || DEFAULT_RETRY_OPTIONS);
+		let wasConnected = false;
+
+		operation.attempt((currentAttempt) =>
+		{
+			if (this._closed)
+			{
+				operation.stop();
+
+				return;
+			}
+
+			logger.debug('_setWebSocket() [currentAttempt:%s]', currentAttempt);
+
+			this._ws = new W3CWebSocket(
+				this._url,
+				WS_SUBPROTOCOL,
+				options.origin,
+				options.headers,
+				options.requestOptions,
+				options.clientConfig
+			);
+
+			this.emit('connecting', currentAttempt);
+
+			this._ws.onopen = () =>
+			{
+				if (this._closed)
+					return;
+
+				wasConnected = true;
+
+				// Emit 'open' event.
+				this.emit('open');
+			};
+
+			this._ws.onclose = (event) =>
+			{
+				if (this._closed)
+					return;
+
+				logger.warn('WebSocket "close" event [wasClean:%s, code:%s, reason:"%s"]',
+					event.wasClean, event.code, event.reason);
+
+				// Don't retry if code is 4000 (closed by the server).
+				if (event.code !== 4000)
+				{
+					// If it was not connected, try again.
+					if (!wasConnected)
+					{
+						this.emit('failed', currentAttempt);
+
+						if (this._closed)
+							return;
+
+						if (operation.retry(true))
+							return;
+					}
+					// If it was connected, start from scratch.
+					else
+					{
+						operation.stop();
+
+						this.emit('disconnected');
+
+						if (this._closed)
+							return;
+
+						this._setWebSocket();
+
+						return;
+					}
+				}
+
+				this._closed = true;
+
+				// Emit 'close' event.
+				this.emit('close');
+			};
+
+			this._ws.onerror = () =>
+			{
+				if (this._closed)
+					return;
+
+				logger.error('WebSocket "error" event');
+			};
+
+			this._ws.onmessage = (event) =>
+			{
+				if (this._closed)
+					return;
+
+				const message = Message.parse(event.data);
+
+				if (!message)
+					return;
+
+				if (this.listenerCount('message') === 0)
+				{
+					logger.error('no listeners for WebSocket "message" event, ignoring received message');
 
 					return;
 				}
 
-				logger.debug('_setWebSocket() [currentAttempt:%s]', currentAttempt);
-
-				_this2._ws = new W3CWebSocket(_this2._url, WS_SUBPROTOCOL, options.origin, options.headers, options.requestOptions, options.clientConfig);
-
-				_this2.emit('connecting', currentAttempt);
-
-				_this2._ws.onopen = function () {
-					if (_this2._closed) return;
-
-					wasConnected = true;
-
-					// Emit 'open' event.
-					_this2.emit('open');
-				};
-
-				_this2._ws.onclose = function (event) {
-					if (_this2._closed) return;
-
-					logger.warn('WebSocket "close" event [wasClean:%s, code:%s, reason:"%s"]', event.wasClean, event.code, event.reason);
-
-					// Don't retry if code is 4000 (closed by the server).
-					if (event.code !== 4000) {
-						// If it was not connected, try again.
-						if (!wasConnected) {
-							_this2.emit('failed', currentAttempt);
-
-							if (operation.retry(true)) return;
-						}
-						// If it was connected, start from scratch.
-						else {
-								operation.stop();
-
-								_this2.emit('disconnected');
-								_this2._setWebSocket();
-
-								return;
-							}
-					}
-
-					_this2._closed = true;
-
-					// Emit 'close' event.
-					_this2.emit('close');
-				};
-
-				_this2._ws.onerror = function () {
-					if (_this2._closed) return;
-
-					logger.error('WebSocket "error" event');
-				};
-
-				_this2._ws.onmessage = function (event) {
-					if (_this2._closed) return;
-
-					var message = Message.parse(event.data);
-
-					if (!message) return;
-
-					if (_this2.listenerCount('message') === 0) {
-						logger.error('no listeners for WebSocket "message" event, ignoring received message');
-
-						return;
-					}
-
-					// Emit 'message' event.
-					_this2.emit('message', message);
-				};
-			});
-		}
-	}, {
-		key: 'closed',
-		get: function get() {
-			return this._closed;
-		}
-	}]);
-
-	return WebSocketTransport;
-}(EventEmitter);
+				// Emit 'message' event.
+				this.emit('message', message);
+			};
+		});
+	}
+}
 
 module.exports = WebSocketTransport;
-},{"../Message":204,"../logger":207,"events":153,"retry":222,"websocket":232}],209:[function(require,module,exports){
-'use strict';
 
-var WebSocketTransport = require('./WebSocketTransport');
+},{"../Message":204,"../logger":207,"events":153,"retry":214,"websocket":217}],209:[function(require,module,exports){
+const WebSocketTransport = require('./WebSocketTransport');
 
-module.exports = {
-	WebSocketTransport: WebSocketTransport
+module.exports =
+{
+	WebSocketTransport : WebSocketTransport
 };
+
 },{"./WebSocketTransport":208}],210:[function(require,module,exports){
-'use strict';
+const randomNumber = require('random-number');
 
-var randomNumber = require('random-number');
+const randomNumberGenerator = randomNumber.generator(
+	{
+		min     : 1000000,
+		max     : 9999999,
+		integer : true
+	});
 
-var randomNumberGenerator = randomNumber.generator({
-	min: 1000000,
-	max: 9999999,
-	integer: true
-});
-
-module.exports = {
-	randomNumber: randomNumberGenerator
+module.exports =
+{
+	randomNumber : randomNumberGenerator
 };
-},{"random-number":211}],211:[function(require,module,exports){
+
+},{"random-number":220}],211:[function(require,module,exports){
+arguments[4][198][0].apply(exports,arguments)
+},{"./common":212,"_process":203,"dup":198}],212:[function(require,module,exports){
+
+/**
+ * This is the common logic for both the Node.js and web browser
+ * implementations of `debug()`.
+ */
+
+function setup(env) {
+	createDebug.debug = createDebug;
+	createDebug.default = createDebug;
+	createDebug.coerce = coerce;
+	createDebug.disable = disable;
+	createDebug.enable = enable;
+	createDebug.enabled = enabled;
+	createDebug.humanize = require('ms');
+
+	Object.keys(env).forEach(key => {
+		createDebug[key] = env[key];
+	});
+
+	/**
+	* Active `debug` instances.
+	*/
+	createDebug.instances = [];
+
+	/**
+	* The currently active debug mode names, and names to skip.
+	*/
+
+	createDebug.names = [];
+	createDebug.skips = [];
+
+	/**
+	* Map of special "%n" handling functions, for the debug "format" argument.
+	*
+	* Valid key names are a single, lower or upper-case letter, i.e. "n" and "N".
+	*/
+	createDebug.formatters = {};
+
+	/**
+	* Selects a color for a debug namespace
+	* @param {String} namespace The namespace string for the for the debug instance to be colored
+	* @return {Number|String} An ANSI color code for the given namespace
+	* @api private
+	*/
+	function selectColor(namespace) {
+		let hash = 0;
+
+		for (let i = 0; i < namespace.length; i++) {
+			hash = ((hash << 5) - hash) + namespace.charCodeAt(i);
+			hash |= 0; // Convert to 32bit integer
+		}
+
+		return createDebug.colors[Math.abs(hash) % createDebug.colors.length];
+	}
+	createDebug.selectColor = selectColor;
+
+	/**
+	* Create a debugger with the given `namespace`.
+	*
+	* @param {String} namespace
+	* @return {Function}
+	* @api public
+	*/
+	function createDebug(namespace) {
+		let prevTime;
+
+		function debug(...args) {
+			// Disabled?
+			if (!debug.enabled) {
+				return;
+			}
+
+			const self = debug;
+
+			// Set `diff` timestamp
+			const curr = Number(new Date());
+			const ms = curr - (prevTime || curr);
+			self.diff = ms;
+			self.prev = prevTime;
+			self.curr = curr;
+			prevTime = curr;
+
+			args[0] = createDebug.coerce(args[0]);
+
+			if (typeof args[0] !== 'string') {
+				// Anything else let's inspect with %O
+				args.unshift('%O');
+			}
+
+			// Apply any `formatters` transformations
+			let index = 0;
+			args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
+				// If we encounter an escaped % then don't increase the array index
+				if (match === '%%') {
+					return match;
+				}
+				index++;
+				const formatter = createDebug.formatters[format];
+				if (typeof formatter === 'function') {
+					const val = args[index];
+					match = formatter.call(self, val);
+
+					// Now we need to remove `args[index]` since it's inlined in the `format`
+					args.splice(index, 1);
+					index--;
+				}
+				return match;
+			});
+
+			// Apply env-specific formatting (colors, etc.)
+			createDebug.formatArgs.call(self, args);
+
+			const logFn = self.log || createDebug.log;
+			logFn.apply(self, args);
+		}
+
+		debug.namespace = namespace;
+		debug.enabled = createDebug.enabled(namespace);
+		debug.useColors = createDebug.useColors();
+		debug.color = selectColor(namespace);
+		debug.destroy = destroy;
+		debug.extend = extend;
+		// Debug.formatArgs = formatArgs;
+		// debug.rawLog = rawLog;
+
+		// env-specific initialization logic for debug instances
+		if (typeof createDebug.init === 'function') {
+			createDebug.init(debug);
+		}
+
+		createDebug.instances.push(debug);
+
+		return debug;
+	}
+
+	function destroy() {
+		const index = createDebug.instances.indexOf(this);
+		if (index !== -1) {
+			createDebug.instances.splice(index, 1);
+			return true;
+		}
+		return false;
+	}
+
+	function extend(namespace, delimiter) {
+		const newDebug = createDebug(this.namespace + (typeof delimiter === 'undefined' ? ':' : delimiter) + namespace);
+		newDebug.log = this.log;
+		return newDebug;
+	}
+
+	/**
+	* Enables a debug mode by namespaces. This can include modes
+	* separated by a colon and wildcards.
+	*
+	* @param {String} namespaces
+	* @api public
+	*/
+	function enable(namespaces) {
+		createDebug.save(namespaces);
+
+		createDebug.names = [];
+		createDebug.skips = [];
+
+		let i;
+		const split = (typeof namespaces === 'string' ? namespaces : '').split(/[\s,]+/);
+		const len = split.length;
+
+		for (i = 0; i < len; i++) {
+			if (!split[i]) {
+				// ignore empty strings
+				continue;
+			}
+
+			namespaces = split[i].replace(/\*/g, '.*?');
+
+			if (namespaces[0] === '-') {
+				createDebug.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+			} else {
+				createDebug.names.push(new RegExp('^' + namespaces + '$'));
+			}
+		}
+
+		for (i = 0; i < createDebug.instances.length; i++) {
+			const instance = createDebug.instances[i];
+			instance.enabled = createDebug.enabled(instance.namespace);
+		}
+	}
+
+	/**
+	* Disable debug output.
+	*
+	* @return {String} namespaces
+	* @api public
+	*/
+	function disable() {
+		const namespaces = [
+			...createDebug.names.map(toNamespace),
+			...createDebug.skips.map(toNamespace).map(namespace => '-' + namespace)
+		].join(',');
+		createDebug.enable('');
+		return namespaces;
+	}
+
+	/**
+	* Returns true if the given mode name is enabled, false otherwise.
+	*
+	* @param {String} name
+	* @return {Boolean}
+	* @api public
+	*/
+	function enabled(name) {
+		if (name[name.length - 1] === '*') {
+			return true;
+		}
+
+		let i;
+		let len;
+
+		for (i = 0, len = createDebug.skips.length; i < len; i++) {
+			if (createDebug.skips[i].test(name)) {
+				return false;
+			}
+		}
+
+		for (i = 0, len = createDebug.names.length; i < len; i++) {
+			if (createDebug.names[i].test(name)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	* Convert regexp to namespace
+	*
+	* @param {RegExp} regxep
+	* @return {String} namespace
+	* @api private
+	*/
+	function toNamespace(regexp) {
+		return regexp.toString()
+			.substring(2, regexp.toString().length - 2)
+			.replace(/\.\*\?$/, '*');
+	}
+
+	/**
+	* Coerce `val`.
+	*
+	* @param {Mixed} val
+	* @return {Mixed}
+	* @api private
+	*/
+	function coerce(val) {
+		if (val instanceof Error) {
+			return val.stack || val.message;
+		}
+		return val;
+	}
+
+	createDebug.enable(createDebug.load());
+
+	return createDebug;
+}
+
+module.exports = setup;
+
+},{"ms":213}],213:[function(require,module,exports){
+arguments[4][200][0].apply(exports,arguments)
+},{"dup":200}],214:[function(require,module,exports){
+module.exports = require('./lib/retry');
+},{"./lib/retry":215}],215:[function(require,module,exports){
+var RetryOperation = require('./retry_operation');
+
+exports.operation = function(options) {
+  var timeouts = exports.timeouts(options);
+  return new RetryOperation(timeouts, {
+      forever: options && options.forever,
+      unref: options && options.unref,
+      maxRetryTime: options && options.maxRetryTime
+  });
+};
+
+exports.timeouts = function(options) {
+  if (options instanceof Array) {
+    return [].concat(options);
+  }
+
+  var opts = {
+    retries: 10,
+    factor: 2,
+    minTimeout: 1 * 1000,
+    maxTimeout: Infinity,
+    randomize: false
+  };
+  for (var key in options) {
+    opts[key] = options[key];
+  }
+
+  if (opts.minTimeout > opts.maxTimeout) {
+    throw new Error('minTimeout is greater than maxTimeout');
+  }
+
+  var timeouts = [];
+  for (var i = 0; i < opts.retries; i++) {
+    timeouts.push(this.createTimeout(i, opts));
+  }
+
+  if (options && options.forever && !timeouts.length) {
+    timeouts.push(this.createTimeout(i, opts));
+  }
+
+  // sort the array numerically ascending
+  timeouts.sort(function(a,b) {
+    return a - b;
+  });
+
+  return timeouts;
+};
+
+exports.createTimeout = function(attempt, opts) {
+  var random = (opts.randomize)
+    ? (Math.random() + 1)
+    : 1;
+
+  var timeout = Math.round(random * opts.minTimeout * Math.pow(opts.factor, attempt));
+  timeout = Math.min(timeout, opts.maxTimeout);
+
+  return timeout;
+};
+
+exports.wrap = function(obj, options, methods) {
+  if (options instanceof Array) {
+    methods = options;
+    options = null;
+  }
+
+  if (!methods) {
+    methods = [];
+    for (var key in obj) {
+      if (typeof obj[key] === 'function') {
+        methods.push(key);
+      }
+    }
+  }
+
+  for (var i = 0; i < methods.length; i++) {
+    var method   = methods[i];
+    var original = obj[method];
+
+    obj[method] = function retryWrapper(original) {
+      var op       = exports.operation(options);
+      var args     = Array.prototype.slice.call(arguments, 1);
+      var callback = args.pop();
+
+      args.push(function(err) {
+        if (op.retry(err)) {
+          return;
+        }
+        if (err) {
+          arguments[0] = op.mainError();
+        }
+        callback.apply(this, arguments);
+      });
+
+      op.attempt(function() {
+        original.apply(obj, args);
+      });
+    }.bind(obj, original);
+    obj[method].options = options;
+  }
+};
+
+},{"./retry_operation":216}],216:[function(require,module,exports){
+function RetryOperation(timeouts, options) {
+  // Compatibility for the old (timeouts, retryForever) signature
+  if (typeof options === 'boolean') {
+    options = { forever: options };
+  }
+
+  this._originalTimeouts = JSON.parse(JSON.stringify(timeouts));
+  this._timeouts = timeouts;
+  this._options = options || {};
+  this._maxRetryTime = options && options.maxRetryTime || Infinity;
+  this._fn = null;
+  this._errors = [];
+  this._attempts = 1;
+  this._operationTimeout = null;
+  this._operationTimeoutCb = null;
+  this._timeout = null;
+  this._operationStart = null;
+
+  if (this._options.forever) {
+    this._cachedTimeouts = this._timeouts.slice(0);
+  }
+}
+module.exports = RetryOperation;
+
+RetryOperation.prototype.reset = function() {
+  this._attempts = 1;
+  this._timeouts = this._originalTimeouts;
+}
+
+RetryOperation.prototype.stop = function() {
+  if (this._timeout) {
+    clearTimeout(this._timeout);
+  }
+
+  this._timeouts       = [];
+  this._cachedTimeouts = null;
+};
+
+RetryOperation.prototype.retry = function(err) {
+  if (this._timeout) {
+    clearTimeout(this._timeout);
+  }
+
+  if (!err) {
+    return false;
+  }
+  var currentTime = new Date().getTime();
+  if (err && currentTime - this._operationStart >= this._maxRetryTime) {
+    this._errors.unshift(new Error('RetryOperation timeout occurred'));
+    return false;
+  }
+
+  this._errors.push(err);
+
+  var timeout = this._timeouts.shift();
+  if (timeout === undefined) {
+    if (this._cachedTimeouts) {
+      // retry forever, only keep last error
+      this._errors.splice(this._errors.length - 1, this._errors.length);
+      this._timeouts = this._cachedTimeouts.slice(0);
+      timeout = this._timeouts.shift();
+    } else {
+      return false;
+    }
+  }
+
+  var self = this;
+  var timer = setTimeout(function() {
+    self._attempts++;
+
+    if (self._operationTimeoutCb) {
+      self._timeout = setTimeout(function() {
+        self._operationTimeoutCb(self._attempts);
+      }, self._operationTimeout);
+
+      if (self._options.unref) {
+          self._timeout.unref();
+      }
+    }
+
+    self._fn(self._attempts);
+  }, timeout);
+
+  if (this._options.unref) {
+      timer.unref();
+  }
+
+  return true;
+};
+
+RetryOperation.prototype.attempt = function(fn, timeoutOps) {
+  this._fn = fn;
+
+  if (timeoutOps) {
+    if (timeoutOps.timeout) {
+      this._operationTimeout = timeoutOps.timeout;
+    }
+    if (timeoutOps.cb) {
+      this._operationTimeoutCb = timeoutOps.cb;
+    }
+  }
+
+  var self = this;
+  if (this._operationTimeoutCb) {
+    this._timeout = setTimeout(function() {
+      self._operationTimeoutCb();
+    }, self._operationTimeout);
+  }
+
+  this._operationStart = new Date().getTime();
+
+  this._fn(this._attempts);
+};
+
+RetryOperation.prototype.try = function(fn) {
+  console.log('Using RetryOperation.try() is deprecated');
+  this.attempt(fn);
+};
+
+RetryOperation.prototype.start = function(fn) {
+  console.log('Using RetryOperation.start() is deprecated');
+  this.attempt(fn);
+};
+
+RetryOperation.prototype.start = RetryOperation.prototype.try;
+
+RetryOperation.prototype.errors = function() {
+  return this._errors;
+};
+
+RetryOperation.prototype.attempts = function() {
+  return this._attempts;
+};
+
+RetryOperation.prototype.mainError = function() {
+  if (this._errors.length === 0) {
+    return null;
+  }
+
+  var counts = {};
+  var mainError = null;
+  var mainErrorCount = 0;
+
+  for (var i = 0; i < this._errors.length; i++) {
+    var error = this._errors[i];
+    var message = error.message;
+    var count = (counts[message] || 0) + 1;
+
+    counts[message] = count;
+
+    if (count >= mainErrorCount) {
+      mainError = error;
+      mainErrorCount = count;
+    }
+  }
+
+  return mainError;
+};
+
+},{}],217:[function(require,module,exports){
+var _global = (function() { return this; })();
+var NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
+var websocket_version = require('./version');
+
+
+/**
+ * Expose a W3C WebSocket class with just one or two arguments.
+ */
+function W3CWebSocket(uri, protocols) {
+	var native_instance;
+
+	if (protocols) {
+		native_instance = new NativeWebSocket(uri, protocols);
+	}
+	else {
+		native_instance = new NativeWebSocket(uri);
+	}
+
+	/**
+	 * 'native_instance' is an instance of nativeWebSocket (the browser's WebSocket
+	 * class). Since it is an Object it will be returned as it is when creating an
+	 * instance of W3CWebSocket via 'new W3CWebSocket()'.
+	 *
+	 * ECMAScript 5: http://bclary.com/2004/11/07/#a-13.2.2
+	 */
+	return native_instance;
+}
+if (NativeWebSocket) {
+	['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach(function(prop) {
+		Object.defineProperty(W3CWebSocket, prop, {
+			get: function() { return NativeWebSocket[prop]; }
+		});
+	});
+}
+
+/**
+ * Module exports.
+ */
+module.exports = {
+    'w3cwebsocket' : NativeWebSocket ? W3CWebSocket : null,
+    'version'      : websocket_version
+};
+
+},{"./version":218}],218:[function(require,module,exports){
+module.exports = require('../package.json').version;
+
+},{"../package.json":219}],219:[function(require,module,exports){
+module.exports={
+  "_from": "websocket@^1.0.28",
+  "_id": "websocket@1.0.28",
+  "_inBundle": false,
+  "_integrity": "sha512-00y/20/80P7H4bCYkzuuvvfDvh+dgtXi5kzDf3UcZwN6boTYaKvsrtZ5lIYm1Gsg48siMErd9M4zjSYfYFHTrA==",
+  "_location": "/protoo-client/websocket",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "websocket@^1.0.28",
+    "name": "websocket",
+    "escapedName": "websocket",
+    "rawSpec": "^1.0.28",
+    "saveSpec": null,
+    "fetchSpec": "^1.0.28"
+  },
+  "_requiredBy": [
+    "/protoo-client"
+  ],
+  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.28.tgz",
+  "_shasum": "9e5f6fdc8a3fe01d4422647ef93abdd8d45a78d3",
+  "_spec": "websocket@^1.0.28",
+  "_where": "/home/alexey/Desktop/Projects/JS/easy-mediasoup/node_modules/protoo-client",
+  "author": {
+    "name": "Brian McKelvey",
+    "email": "theturtle32@gmail.com",
+    "url": "https://github.com/theturtle32"
+  },
+  "browser": "lib/browser.js",
+  "bugs": {
+    "url": "https://github.com/theturtle32/WebSocket-Node/issues"
+  },
+  "bundleDependencies": false,
+  "config": {
+    "verbose": false
+  },
+  "contributors": [
+    {
+      "name": "Iñaki Baz Castillo",
+      "email": "ibc@aliax.net",
+      "url": "http://dev.sipdoc.net"
+    }
+  ],
+  "dependencies": {
+    "debug": "^2.2.0",
+    "nan": "^2.11.0",
+    "typedarray-to-buffer": "^3.1.5",
+    "yaeti": "^0.0.6"
+  },
+  "deprecated": false,
+  "description": "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
+  "devDependencies": {
+    "buffer-equal": "^1.0.0",
+    "faucet": "^0.0.1",
+    "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
+    "gulp-jshint": "^2.0.4",
+    "jshint": "^2.0.0",
+    "jshint-stylish": "^2.2.1",
+    "tape": "^4.9.1"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "homepage": "https://github.com/theturtle32/WebSocket-Node",
+  "keywords": [
+    "websocket",
+    "websockets",
+    "socket",
+    "networking",
+    "comet",
+    "push",
+    "RFC-6455",
+    "realtime",
+    "server",
+    "client"
+  ],
+  "license": "Apache-2.0",
+  "main": "index",
+  "name": "websocket",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theturtle32/WebSocket-Node.git"
+  },
+  "scripts": {
+    "gulp": "gulp",
+    "install": "(node-gyp rebuild 2> builderror.log) || (exit 0)",
+    "test": "faucet test/unit"
+  },
+  "version": "1.0.28"
+}
+
+},{}],220:[function(require,module,exports){
 void function(root){
 
   function defaults(options){
@@ -26847,7 +27644,7 @@ void function(root){
   module.exports.defaults = defaults
 }(this)
 
-},{}],212:[function(require,module,exports){
+},{}],221:[function(require,module,exports){
 /*
  * random-string
  * https://github.com/valiton/node-random-string
@@ -26899,12 +27696,12 @@ module.exports = function randomString(opts) {
 };
 
 
-},{}],213:[function(require,module,exports){
+},{}],222:[function(require,module,exports){
 (function (global){
 !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t(e.reduxLogger=e.reduxLogger||{})}(this,function(e){"use strict";function t(e,t){e.super_=t,e.prototype=Object.create(t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}})}function r(e,t){Object.defineProperty(this,"kind",{value:e,enumerable:!0}),t&&t.length&&Object.defineProperty(this,"path",{value:t,enumerable:!0})}function n(e,t,r){n.super_.call(this,"E",e),Object.defineProperty(this,"lhs",{value:t,enumerable:!0}),Object.defineProperty(this,"rhs",{value:r,enumerable:!0})}function o(e,t){o.super_.call(this,"N",e),Object.defineProperty(this,"rhs",{value:t,enumerable:!0})}function i(e,t){i.super_.call(this,"D",e),Object.defineProperty(this,"lhs",{value:t,enumerable:!0})}function a(e,t,r){a.super_.call(this,"A",e),Object.defineProperty(this,"index",{value:t,enumerable:!0}),Object.defineProperty(this,"item",{value:r,enumerable:!0})}function f(e,t,r){var n=e.slice((r||t)+1||e.length);return e.length=t<0?e.length+t:t,e.push.apply(e,n),e}function u(e){var t="undefined"==typeof e?"undefined":N(e);return"object"!==t?t:e===Math?"math":null===e?"null":Array.isArray(e)?"array":"[object Date]"===Object.prototype.toString.call(e)?"date":"function"==typeof e.toString&&/^\/.*\//.test(e.toString())?"regexp":"object"}function l(e,t,r,c,s,d,p){s=s||[],p=p||[];var g=s.slice(0);if("undefined"!=typeof d){if(c){if("function"==typeof c&&c(g,d))return;if("object"===("undefined"==typeof c?"undefined":N(c))){if(c.prefilter&&c.prefilter(g,d))return;if(c.normalize){var h=c.normalize(g,d,e,t);h&&(e=h[0],t=h[1])}}}g.push(d)}"regexp"===u(e)&&"regexp"===u(t)&&(e=e.toString(),t=t.toString());var y="undefined"==typeof e?"undefined":N(e),v="undefined"==typeof t?"undefined":N(t),b="undefined"!==y||p&&p[p.length-1].lhs&&p[p.length-1].lhs.hasOwnProperty(d),m="undefined"!==v||p&&p[p.length-1].rhs&&p[p.length-1].rhs.hasOwnProperty(d);if(!b&&m)r(new o(g,t));else if(!m&&b)r(new i(g,e));else if(u(e)!==u(t))r(new n(g,e,t));else if("date"===u(e)&&e-t!==0)r(new n(g,e,t));else if("object"===y&&null!==e&&null!==t)if(p.filter(function(t){return t.lhs===e}).length)e!==t&&r(new n(g,e,t));else{if(p.push({lhs:e,rhs:t}),Array.isArray(e)){var w;e.length;for(w=0;w<e.length;w++)w>=t.length?r(new a(g,w,new i(void 0,e[w]))):l(e[w],t[w],r,c,g,w,p);for(;w<t.length;)r(new a(g,w,new o(void 0,t[w++])))}else{var x=Object.keys(e),S=Object.keys(t);x.forEach(function(n,o){var i=S.indexOf(n);i>=0?(l(e[n],t[n],r,c,g,n,p),S=f(S,i)):l(e[n],void 0,r,c,g,n,p)}),S.forEach(function(e){l(void 0,t[e],r,c,g,e,p)})}p.length=p.length-1}else e!==t&&("number"===y&&isNaN(e)&&isNaN(t)||r(new n(g,e,t)))}function c(e,t,r,n){return n=n||[],l(e,t,function(e){e&&n.push(e)},r),n.length?n:void 0}function s(e,t,r){if(r.path&&r.path.length){var n,o=e[t],i=r.path.length-1;for(n=0;n<i;n++)o=o[r.path[n]];switch(r.kind){case"A":s(o[r.path[n]],r.index,r.item);break;case"D":delete o[r.path[n]];break;case"E":case"N":o[r.path[n]]=r.rhs}}else switch(r.kind){case"A":s(e[t],r.index,r.item);break;case"D":e=f(e,t);break;case"E":case"N":e[t]=r.rhs}return e}function d(e,t,r){if(e&&t&&r&&r.kind){for(var n=e,o=-1,i=r.path?r.path.length-1:0;++o<i;)"undefined"==typeof n[r.path[o]]&&(n[r.path[o]]="number"==typeof r.path[o]?[]:{}),n=n[r.path[o]];switch(r.kind){case"A":s(r.path?n[r.path[o]]:n,r.index,r.item);break;case"D":delete n[r.path[o]];break;case"E":case"N":n[r.path[o]]=r.rhs}}}function p(e,t,r){if(r.path&&r.path.length){var n,o=e[t],i=r.path.length-1;for(n=0;n<i;n++)o=o[r.path[n]];switch(r.kind){case"A":p(o[r.path[n]],r.index,r.item);break;case"D":o[r.path[n]]=r.lhs;break;case"E":o[r.path[n]]=r.lhs;break;case"N":delete o[r.path[n]]}}else switch(r.kind){case"A":p(e[t],r.index,r.item);break;case"D":e[t]=r.lhs;break;case"E":e[t]=r.lhs;break;case"N":e=f(e,t)}return e}function g(e,t,r){if(e&&t&&r&&r.kind){var n,o,i=e;for(o=r.path.length-1,n=0;n<o;n++)"undefined"==typeof i[r.path[n]]&&(i[r.path[n]]={}),i=i[r.path[n]];switch(r.kind){case"A":p(i[r.path[n]],r.index,r.item);break;case"D":i[r.path[n]]=r.lhs;break;case"E":i[r.path[n]]=r.lhs;break;case"N":delete i[r.path[n]]}}}function h(e,t,r){if(e&&t){var n=function(n){r&&!r(e,t,n)||d(e,t,n)};l(e,t,n)}}function y(e){return"color: "+F[e].color+"; font-weight: bold"}function v(e){var t=e.kind,r=e.path,n=e.lhs,o=e.rhs,i=e.index,a=e.item;switch(t){case"E":return[r.join("."),n,"→",o];case"N":return[r.join("."),o];case"D":return[r.join(".")];case"A":return[r.join(".")+"["+i+"]",a];default:return[]}}function b(e,t,r,n){var o=c(e,t);try{n?r.groupCollapsed("diff"):r.group("diff")}catch(e){r.log("diff")}o?o.forEach(function(e){var t=e.kind,n=v(e);r.log.apply(r,["%c "+F[t].text,y(t)].concat(P(n)))}):r.log("—— no diff ——");try{r.groupEnd()}catch(e){r.log("—— diff end —— ")}}function m(e,t,r,n){switch("undefined"==typeof e?"undefined":N(e)){case"object":return"function"==typeof e[n]?e[n].apply(e,P(r)):e[n];case"function":return e(t);default:return e}}function w(e){var t=e.timestamp,r=e.duration;return function(e,n,o){var i=["action"];return i.push("%c"+String(e.type)),t&&i.push("%c@ "+n),r&&i.push("%c(in "+o.toFixed(2)+" ms)"),i.join(" ")}}function x(e,t){var r=t.logger,n=t.actionTransformer,o=t.titleFormatter,i=void 0===o?w(t):o,a=t.collapsed,f=t.colors,u=t.level,l=t.diff,c="undefined"==typeof t.titleFormatter;e.forEach(function(o,s){var d=o.started,p=o.startedTime,g=o.action,h=o.prevState,y=o.error,v=o.took,w=o.nextState,x=e[s+1];x&&(w=x.prevState,v=x.started-d);var S=n(g),k="function"==typeof a?a(function(){return w},g,o):a,j=D(p),E=f.title?"color: "+f.title(S)+";":"",A=["color: gray; font-weight: lighter;"];A.push(E),t.timestamp&&A.push("color: gray; font-weight: lighter;"),t.duration&&A.push("color: gray; font-weight: lighter;");var O=i(S,j,v);try{k?f.title&&c?r.groupCollapsed.apply(r,["%c "+O].concat(A)):r.groupCollapsed(O):f.title&&c?r.group.apply(r,["%c "+O].concat(A)):r.group(O)}catch(e){r.log(O)}var N=m(u,S,[h],"prevState"),P=m(u,S,[S],"action"),C=m(u,S,[y,h],"error"),F=m(u,S,[w],"nextState");if(N)if(f.prevState){var L="color: "+f.prevState(h)+"; font-weight: bold";r[N]("%c prev state",L,h)}else r[N]("prev state",h);if(P)if(f.action){var T="color: "+f.action(S)+"; font-weight: bold";r[P]("%c action    ",T,S)}else r[P]("action    ",S);if(y&&C)if(f.error){var M="color: "+f.error(y,h)+"; font-weight: bold;";r[C]("%c error     ",M,y)}else r[C]("error     ",y);if(F)if(f.nextState){var _="color: "+f.nextState(w)+"; font-weight: bold";r[F]("%c next state",_,w)}else r[F]("next state",w);l&&b(h,w,r,k);try{r.groupEnd()}catch(e){r.log("—— log end ——")}})}function S(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},t=Object.assign({},L,e),r=t.logger,n=t.stateTransformer,o=t.errorTransformer,i=t.predicate,a=t.logErrors,f=t.diffPredicate;if("undefined"==typeof r)return function(){return function(e){return function(t){return e(t)}}};if(e.getState&&e.dispatch)return console.error("[redux-logger] redux-logger not installed. Make sure to pass logger instance as middleware:\n// Logger with default options\nimport { logger } from 'redux-logger'\nconst store = createStore(\n  reducer,\n  applyMiddleware(logger)\n)\n// Or you can create your own logger with custom options http://bit.ly/redux-logger-options\nimport createLogger from 'redux-logger'\nconst logger = createLogger({\n  // ...options\n});\nconst store = createStore(\n  reducer,\n  applyMiddleware(logger)\n)\n"),function(){return function(e){return function(t){return e(t)}}};var u=[];return function(e){var r=e.getState;return function(e){return function(l){if("function"==typeof i&&!i(r,l))return e(l);var c={};u.push(c),c.started=O.now(),c.startedTime=new Date,c.prevState=n(r()),c.action=l;var s=void 0;if(a)try{s=e(l)}catch(e){c.error=o(e)}else s=e(l);c.took=O.now()-c.started,c.nextState=n(r());var d=t.diff&&"function"==typeof f?f(r,l):t.diff;if(x(u,Object.assign({},t,{diff:d})),u.length=0,c.error)throw c.error;return s}}}}var k,j,E=function(e,t){return new Array(t+1).join(e)},A=function(e,t){return E("0",t-e.toString().length)+e},D=function(e){return A(e.getHours(),2)+":"+A(e.getMinutes(),2)+":"+A(e.getSeconds(),2)+"."+A(e.getMilliseconds(),3)},O="undefined"!=typeof performance&&null!==performance&&"function"==typeof performance.now?performance:Date,N="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},P=function(e){if(Array.isArray(e)){for(var t=0,r=Array(e.length);t<e.length;t++)r[t]=e[t];return r}return Array.from(e)},C=[];k="object"===("undefined"==typeof global?"undefined":N(global))&&global?global:"undefined"!=typeof window?window:{},j=k.DeepDiff,j&&C.push(function(){"undefined"!=typeof j&&k.DeepDiff===c&&(k.DeepDiff=j,j=void 0)}),t(n,r),t(o,r),t(i,r),t(a,r),Object.defineProperties(c,{diff:{value:c,enumerable:!0},observableDiff:{value:l,enumerable:!0},applyDiff:{value:h,enumerable:!0},applyChange:{value:d,enumerable:!0},revertChange:{value:g,enumerable:!0},isConflict:{value:function(){return"undefined"!=typeof j},enumerable:!0},noConflict:{value:function(){return C&&(C.forEach(function(e){e()}),C=null),c},enumerable:!0}});var F={E:{color:"#2196F3",text:"CHANGED:"},N:{color:"#4CAF50",text:"ADDED:"},D:{color:"#F44336",text:"DELETED:"},A:{color:"#2196F3",text:"ARRAY:"}},L={level:"log",logger:console,logErrors:!0,collapsed:void 0,predicate:void 0,duration:!1,timestamp:!0,stateTransformer:function(e){return e},actionTransformer:function(e){return e},errorTransformer:function(e){return e},colors:{title:function(){return"inherit"},prevState:function(){return"#9E9E9E"},action:function(){return"#03A9F4"},nextState:function(){return"#4CAF50"},error:function(){return"#F20404"}},diff:!1,diffPredicate:void 0,transformer:void 0},T=function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},t=e.dispatch,r=e.getState;return"function"==typeof t||"function"==typeof r?S()({dispatch:t,getState:r}):void console.error("\n[redux-logger v3] BREAKING CHANGE\n[redux-logger v3] Since 3.0.0 redux-logger exports by default logger with default settings.\n[redux-logger v3] Change\n[redux-logger v3] import createLogger from 'redux-logger'\n[redux-logger v3] to\n[redux-logger v3] import { createLogger } from 'redux-logger'\n")};e.defaults=L,e.createLogger=S,e.logger=T,e.default=T,Object.defineProperty(e,"__esModule",{value:!0})});
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],214:[function(require,module,exports){
+},{}],223:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26928,7 +27725,7 @@ var thunk = createThunkMiddleware();
 thunk.withExtraArgument = createThunkMiddleware;
 
 exports['default'] = thunk;
-},{}],215:[function(require,module,exports){
+},{}],224:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -26987,7 +27784,7 @@ function applyMiddleware() {
     };
   };
 }
-},{"./compose":218}],216:[function(require,module,exports){
+},{"./compose":227}],225:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27039,7 +27836,7 @@ function bindActionCreators(actionCreators, dispatch) {
   }
   return boundActionCreators;
 }
-},{}],217:[function(require,module,exports){
+},{}],226:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27183,7 +27980,7 @@ function combineReducers(reducers) {
     return hasChanged ? nextState : state;
   };
 }
-},{"./createStore":219,"./utils/warning":221,"lodash/isPlainObject":164}],218:[function(require,module,exports){
+},{"./createStore":228,"./utils/warning":230,"lodash/isPlainObject":164}],227:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -27220,7 +28017,7 @@ function compose() {
     };
   });
 }
-},{}],219:[function(require,module,exports){
+},{}],228:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27482,7 +28279,7 @@ var ActionTypes = exports.ActionTypes = {
     replaceReducer: replaceReducer
   }, _ref2[_symbolObservable2['default']] = observable, _ref2;
 }
-},{"lodash/isPlainObject":164,"symbol-observable":229}],220:[function(require,module,exports){
+},{"lodash/isPlainObject":164,"symbol-observable":235}],229:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27529,7 +28326,7 @@ exports.combineReducers = _combineReducers2['default'];
 exports.bindActionCreators = _bindActionCreators2['default'];
 exports.applyMiddleware = _applyMiddleware2['default'];
 exports.compose = _compose2['default'];
-},{"./applyMiddleware":215,"./bindActionCreators":216,"./combineReducers":217,"./compose":218,"./createStore":219,"./utils/warning":221}],221:[function(require,module,exports){
+},{"./applyMiddleware":224,"./bindActionCreators":225,"./combineReducers":226,"./compose":227,"./createStore":228,"./utils/warning":230}],230:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -27555,255 +28352,7 @@ function warning(message) {
   } catch (e) {}
   /* eslint-enable no-empty */
 }
-},{}],222:[function(require,module,exports){
-module.exports = require('./lib/retry');
-},{"./lib/retry":223}],223:[function(require,module,exports){
-var RetryOperation = require('./retry_operation');
-
-exports.operation = function(options) {
-  var timeouts = exports.timeouts(options);
-  return new RetryOperation(timeouts, {
-      forever: options && options.forever,
-      unref: options && options.unref
-  });
-};
-
-exports.timeouts = function(options) {
-  if (options instanceof Array) {
-    return [].concat(options);
-  }
-
-  var opts = {
-    retries: 10,
-    factor: 2,
-    minTimeout: 1 * 1000,
-    maxTimeout: Infinity,
-    randomize: false
-  };
-  for (var key in options) {
-    opts[key] = options[key];
-  }
-
-  if (opts.minTimeout > opts.maxTimeout) {
-    throw new Error('minTimeout is greater than maxTimeout');
-  }
-
-  var timeouts = [];
-  for (var i = 0; i < opts.retries; i++) {
-    timeouts.push(this.createTimeout(i, opts));
-  }
-
-  if (options && options.forever && !timeouts.length) {
-    timeouts.push(this.createTimeout(i, opts));
-  }
-
-  // sort the array numerically ascending
-  timeouts.sort(function(a,b) {
-    return a - b;
-  });
-
-  return timeouts;
-};
-
-exports.createTimeout = function(attempt, opts) {
-  var random = (opts.randomize)
-    ? (Math.random() + 1)
-    : 1;
-
-  var timeout = Math.round(random * opts.minTimeout * Math.pow(opts.factor, attempt));
-  timeout = Math.min(timeout, opts.maxTimeout);
-
-  return timeout;
-};
-
-exports.wrap = function(obj, options, methods) {
-  if (options instanceof Array) {
-    methods = options;
-    options = null;
-  }
-
-  if (!methods) {
-    methods = [];
-    for (var key in obj) {
-      if (typeof obj[key] === 'function') {
-        methods.push(key);
-      }
-    }
-  }
-
-  for (var i = 0; i < methods.length; i++) {
-    var method   = methods[i];
-    var original = obj[method];
-
-    obj[method] = function retryWrapper() {
-      var op       = exports.operation(options);
-      var args     = Array.prototype.slice.call(arguments);
-      var callback = args.pop();
-
-      args.push(function(err) {
-        if (op.retry(err)) {
-          return;
-        }
-        if (err) {
-          arguments[0] = op.mainError();
-        }
-        callback.apply(this, arguments);
-      });
-
-      op.attempt(function() {
-        original.apply(obj, args);
-      });
-    };
-    obj[method].options = options;
-  }
-};
-
-},{"./retry_operation":224}],224:[function(require,module,exports){
-function RetryOperation(timeouts, options) {
-  // Compatibility for the old (timeouts, retryForever) signature
-  if (typeof options === 'boolean') {
-    options = { forever: options };
-  }
-
-  this._timeouts = timeouts;
-  this._options = options || {};
-  this._fn = null;
-  this._errors = [];
-  this._attempts = 1;
-  this._operationTimeout = null;
-  this._operationTimeoutCb = null;
-  this._timeout = null;
-
-  if (this._options.forever) {
-    this._cachedTimeouts = this._timeouts.slice(0);
-  }
-}
-module.exports = RetryOperation;
-
-RetryOperation.prototype.stop = function() {
-  if (this._timeout) {
-    clearTimeout(this._timeout);
-  }
-
-  this._timeouts       = [];
-  this._cachedTimeouts = null;
-};
-
-RetryOperation.prototype.retry = function(err) {
-  if (this._timeout) {
-    clearTimeout(this._timeout);
-  }
-
-  if (!err) {
-    return false;
-  }
-
-  this._errors.push(err);
-
-  var timeout = this._timeouts.shift();
-  if (timeout === undefined) {
-    if (this._cachedTimeouts) {
-      // retry forever, only keep last error
-      this._errors.splice(this._errors.length - 1, this._errors.length);
-      this._timeouts = this._cachedTimeouts.slice(0);
-      timeout = this._timeouts.shift();
-    } else {
-      return false;
-    }
-  }
-
-  var self = this;
-  var timer = setTimeout(function() {
-    self._attempts++;
-
-    if (self._operationTimeoutCb) {
-      self._timeout = setTimeout(function() {
-        self._operationTimeoutCb(self._attempts);
-      }, self._operationTimeout);
-
-      if (this._options.unref) {
-          self._timeout.unref();
-      }
-    }
-
-    self._fn(self._attempts);
-  }, timeout);
-
-  if (this._options.unref) {
-      timer.unref();
-  }
-
-  return true;
-};
-
-RetryOperation.prototype.attempt = function(fn, timeoutOps) {
-  this._fn = fn;
-
-  if (timeoutOps) {
-    if (timeoutOps.timeout) {
-      this._operationTimeout = timeoutOps.timeout;
-    }
-    if (timeoutOps.cb) {
-      this._operationTimeoutCb = timeoutOps.cb;
-    }
-  }
-
-  var self = this;
-  if (this._operationTimeoutCb) {
-    this._timeout = setTimeout(function() {
-      self._operationTimeoutCb();
-    }, self._operationTimeout);
-  }
-
-  this._fn(this._attempts);
-};
-
-RetryOperation.prototype.try = function(fn) {
-  console.log('Using RetryOperation.try() is deprecated');
-  this.attempt(fn);
-};
-
-RetryOperation.prototype.start = function(fn) {
-  console.log('Using RetryOperation.start() is deprecated');
-  this.attempt(fn);
-};
-
-RetryOperation.prototype.start = RetryOperation.prototype.try;
-
-RetryOperation.prototype.errors = function() {
-  return this._errors;
-};
-
-RetryOperation.prototype.attempts = function() {
-  return this._attempts;
-};
-
-RetryOperation.prototype.mainError = function() {
-  if (this._errors.length === 0) {
-    return null;
-  }
-
-  var counts = {};
-  var mainError = null;
-  var mainErrorCount = 0;
-
-  for (var i = 0; i < this._errors.length; i++) {
-    var error = this._errors[i];
-    var message = error.message;
-    var count = (counts[message] || 0) + 1;
-
-    counts[message] = count;
-
-    if (count >= mainErrorCount) {
-      mainError = error;
-      mainErrorCount = count;
-    }
-  }
-
-  return mainError;
-};
-
-},{}],225:[function(require,module,exports){
+},{}],231:[function(require,module,exports){
 var grammar = module.exports = {
   v: [{
     name: 'version',
@@ -28175,7 +28724,7 @@ Object.keys(grammar).forEach(function (key) {
   });
 });
 
-},{}],226:[function(require,module,exports){
+},{}],232:[function(require,module,exports){
 var parser = require('./parser');
 var writer = require('./writer');
 
@@ -28188,7 +28737,7 @@ exports.parseRemoteCandidates = parser.parseRemoteCandidates;
 exports.parseImageAttributes = parser.parseImageAttributes;
 exports.parseSimulcastStreamList = parser.parseSimulcastStreamList;
 
-},{"./parser":227,"./writer":228}],227:[function(require,module,exports){
+},{"./parser":233,"./writer":234}],233:[function(require,module,exports){
 var toIntIfInt = function (v) {
   return String(Number(v)) === v ? Number(v) : v;
 };
@@ -28314,7 +28863,7 @@ exports.parseSimulcastStreamList = function (str) {
   });
 };
 
-},{"./grammar":225}],228:[function(require,module,exports){
+},{"./grammar":231}],234:[function(require,module,exports){
 var grammar = require('./grammar');
 
 // customized util.format - discards excess arguments and can void middle ones
@@ -28430,10 +28979,10 @@ module.exports = function (session, opts) {
   return sdp.join('\r\n') + '\r\n';
 };
 
-},{"./grammar":225}],229:[function(require,module,exports){
+},{"./grammar":231}],235:[function(require,module,exports){
 module.exports = require('./lib/index');
 
-},{"./lib/index":230}],230:[function(require,module,exports){
+},{"./lib/index":236}],236:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -28465,7 +29014,7 @@ if (typeof self !== 'undefined') {
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./ponyfill.js":231}],231:[function(require,module,exports){
+},{"./ponyfill.js":237}],237:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -28489,156 +29038,7 @@ function symbolObservablePonyfill(root) {
 
 	return result;
 };
-},{}],232:[function(require,module,exports){
-var _global = (function() { return this; })();
-var NativeWebSocket = _global.WebSocket || _global.MozWebSocket;
-var websocket_version = require('./version');
-
-
-/**
- * Expose a W3C WebSocket class with just one or two arguments.
- */
-function W3CWebSocket(uri, protocols) {
-	var native_instance;
-
-	if (protocols) {
-		native_instance = new NativeWebSocket(uri, protocols);
-	}
-	else {
-		native_instance = new NativeWebSocket(uri);
-	}
-
-	/**
-	 * 'native_instance' is an instance of nativeWebSocket (the browser's WebSocket
-	 * class). Since it is an Object it will be returned as it is when creating an
-	 * instance of W3CWebSocket via 'new W3CWebSocket()'.
-	 *
-	 * ECMAScript 5: http://bclary.com/2004/11/07/#a-13.2.2
-	 */
-	return native_instance;
-}
-if (NativeWebSocket) {
-	['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach(function(prop) {
-		Object.defineProperty(W3CWebSocket, prop, {
-			get: function() { return NativeWebSocket[prop]; }
-		});
-	});
-}
-
-/**
- * Module exports.
- */
-module.exports = {
-    'w3cwebsocket' : NativeWebSocket ? W3CWebSocket : null,
-    'version'      : websocket_version
-};
-
-},{"./version":233}],233:[function(require,module,exports){
-module.exports = require('../package.json').version;
-
-},{"../package.json":234}],234:[function(require,module,exports){
-module.exports={
-  "_args": [
-    [
-      "websocket@1.0.25",
-      "/home/alex/Desktop/JS/easy-mediasoup"
-    ]
-  ],
-  "_from": "websocket@1.0.25",
-  "_id": "websocket@1.0.25",
-  "_inBundle": false,
-  "_integrity": "sha512-M58njvi6ZxVb5k7kpnHh2BvNKuBWiwIYvsToErBzWhvBZYwlEiLcyLrG41T1jRcrY9ettqPYEqduLI7ul54CVQ==",
-  "_location": "/websocket",
-  "_optional": true,
-  "_phantomChildren": {
-    "ms": "2.0.0"
-  },
-  "_requested": {
-    "type": "version",
-    "registry": true,
-    "raw": "websocket@1.0.25",
-    "name": "websocket",
-    "escapedName": "websocket",
-    "rawSpec": "1.0.25",
-    "saveSpec": null,
-    "fetchSpec": "1.0.25"
-  },
-  "_requiredBy": [
-    "/protoo-client"
-  ],
-  "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.25.tgz",
-  "_spec": "1.0.25",
-  "_where": "/home/alex/Desktop/JS/easy-mediasoup",
-  "author": {
-    "name": "Brian McKelvey",
-    "email": "brian@worlize.com",
-    "url": "https://www.worlize.com/"
-  },
-  "browser": "lib/browser.js",
-  "bugs": {
-    "url": "https://github.com/theturtle32/WebSocket-Node/issues"
-  },
-  "config": {
-    "verbose": false
-  },
-  "contributors": [
-    {
-      "name": "Iñaki Baz Castillo",
-      "email": "ibc@aliax.net",
-      "url": "http://dev.sipdoc.net"
-    }
-  ],
-  "dependencies": {
-    "debug": "^2.2.0",
-    "nan": "^2.3.3",
-    "typedarray-to-buffer": "^3.1.2",
-    "yaeti": "^0.0.6"
-  },
-  "description": "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
-  "devDependencies": {
-    "buffer-equal": "^1.0.0",
-    "faucet": "^0.0.1",
-    "gulp": "git+https://github.com/gulpjs/gulp.git#4.0",
-    "gulp-jshint": "^2.0.4",
-    "jshint": "^2.0.0",
-    "jshint-stylish": "^2.2.1",
-    "tape": "^4.0.1"
-  },
-  "directories": {
-    "lib": "./lib"
-  },
-  "engines": {
-    "node": ">=0.10.0"
-  },
-  "homepage": "https://github.com/theturtle32/WebSocket-Node",
-  "keywords": [
-    "websocket",
-    "websockets",
-    "socket",
-    "networking",
-    "comet",
-    "push",
-    "RFC-6455",
-    "realtime",
-    "server",
-    "client"
-  ],
-  "license": "Apache-2.0",
-  "main": "index",
-  "name": "websocket",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/theturtle32/WebSocket-Node.git"
-  },
-  "scripts": {
-    "gulp": "gulp",
-    "install": "(node-gyp rebuild 2> builderror.log) || (exit 0)",
-    "test": "faucet test/unit"
-  },
-  "version": "1.0.25"
-}
-
-},{}],235:[function(require,module,exports){
+},{}],238:[function(require,module,exports){
 /*
 WildEmitter.js is a slim little event emitter by @henrikjoreteg largely based
 on @visionmedia's Emitter from UI Kit.

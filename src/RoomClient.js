@@ -784,6 +784,29 @@ export default class RoomClient
 				this.close();
 		});
 
+		this._protoo.on("notification", (notification) => {
+			switch (notification.method) {
+				case 'active-speakers': 
+					const speakers = notification.data;
+
+					global.emitter.emit('active-speakers', speakers)
+
+					break;
+				case 'active-speaker': 
+
+					const { peerName } = notification.data;
+
+					this._dispatch(
+						stateActions.setRoomActiveSpeaker(peerName));
+
+					break;
+				default: 
+					global.emitter.emit('notification', notification)
+					break;
+			}
+			global.emitter.emit('notification')
+		})
+
 		this._protoo.on('request', (request, accept, reject) =>
 		{
 			logger.debug(

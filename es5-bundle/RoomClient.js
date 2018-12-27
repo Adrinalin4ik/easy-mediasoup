@@ -835,6 +835,28 @@ var RoomClient = function () {
 				if (_this13._room._state != "joined") _this13.close();
 			});
 
+			this._protoo.on("notification", function (notification) {
+				switch (notification.method) {
+					case 'active-speakers':
+						var speakers = notification.data;
+
+						global.emitter.emit('active-speakers', speakers);
+
+						break;
+					case 'active-speaker':
+						var peerName = notification.data.peerName;
+
+
+						_this13._dispatch(stateActions.setRoomActiveSpeaker(peerName));
+
+						break;
+					default:
+						global.emitter.emit('notification', notification);
+						break;
+				}
+				global.emitter.emit('notification');
+			});
+
 			this._protoo.on('request', function (request, accept, reject) {
 				logger.debug('_handleProtooRequest() [method:%s, data:%o]', request.method, request.data);
 
