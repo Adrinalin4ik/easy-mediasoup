@@ -280,22 +280,22 @@ var RoomClient = function () {
 	}, {
 		key: 'setScreenShare',
 		value: function setScreenShare(streamId) {
-			console.log("setScreenShare()");
+			logger.debug("setScreenShare()");
 			this._screenStreamId = streamId;
 			if (!this._screenShareProducer) this._activateScreenShare();else this._changeScreenForShare();
 		}
 	}, {
 		key: 'deactivateScreenShare',
 		value: function deactivateScreenShare() {
-			// console.log('deactivateScreenShare()');
+			// logger.debug('deactivateScreenShare()');
 			if (!this._screenShareProducer) {
 				logger.error("Error! Screen share producer doesn't exist");
-				// console.log("Error! Screen share producer doesn't exist");
+				// logger.debug("Error! Screen share producer doesn't exist");
 				return false;
 			}
-			// if(this._screenShareOriginalStream) console.log('stream exists');
+			// if(this._screenShareOriginalStream) logger.debug('stream exists');
 			this._screenShareOriginalStream.getTracks().forEach(function (track) {
-				// console.log('track stopped');
+				// logger.debug('track stopped');
 				track.stop();
 			});
 			this._screenShareOriginalStream = null;
@@ -351,7 +351,7 @@ var RoomClient = function () {
 			var _this4 = this;
 
 			logger.debug('activateMic()');
-			//console.log('inside activate mic')
+			//logger.debug('inside activate mic')
 
 			this._dispatch(stateActions.setMicInProgress(true));
 
@@ -1436,7 +1436,7 @@ var RoomClient = function () {
 
 					_this19._dispatch(stateActions.setMicInProgress(false));
 				}).catch(function (err) {
-					console.log(err);
+					logger.debug(err);
 				});
 			}
 
@@ -1447,7 +1447,7 @@ var RoomClient = function () {
 					_this19._webcam.device = device;
 
 					return navigator.mediaDevices.getUserMedia({
-						deviceId: _this19._webcam.device.deviceId ? { exact: _this19._webcam.webcam.deviceId } : undefined,
+						deviceId: _this19._webcam.device.deviceId ? { exact: _this19._webcam.device.deviceId } : undefined,
 						audio: false,
 						video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
 					});
@@ -1464,7 +1464,7 @@ var RoomClient = function () {
 
 					_this19._dispatch(stateActions.setWebcamInProgress(false));
 				}).catch(function (err) {
-					console.log(err);
+					logger.debug(err);
 				});
 			}
 
@@ -1518,7 +1518,7 @@ var RoomClient = function () {
 				var array = (0, _from2.default)(_this20._webcams.values());
 
 				if (_this20._webcams.has(storageWebcam)) {
-					console.log('Обнаружена камера с ID:' + storageWebcam + " в localStorage");
+					logger.debug('Обнаружена камера с ID:' + storageWebcam + " в localStorage");
 					_this20._webcam.device = _this20._webcams.get(storageWebcam);
 					return;
 				}
@@ -1541,7 +1541,7 @@ var RoomClient = function () {
 			if (!this._produce) return 0;
 
 			logger.debug('_updateMics()');
-			//console.log('inside updateMics()');
+			//logger.debug('inside updateMics()');
 
 			// Reset the list.
 			this._mics = new _map2.default();
@@ -1582,7 +1582,7 @@ var RoomClient = function () {
 				var array = (0, _from2.default)(_this21._mics.values());
 
 				if (_this21._mics.has(storageMic)) {
-					//console.log('Обнаружен микрофон с ID:' + storageMic + " в localStorage");
+					//logger.debug('Обнаружен микрофон с ID:' + storageMic + " в localStorage");
 					_this21._mic = _this21._mics.get(storageMic);
 					return;
 				}
@@ -1750,7 +1750,7 @@ var RoomClient = function () {
 
 			var dataType = { VIDEO: 'video', AUDIO: 'audio' };
 
-			console.log("Starting Media Recorder...");
+			logger.debug("Starting Media Recorder...");
 			var videoStream = new MediaStream(),
 			    audioStream = new MediaStream();
 
@@ -1781,7 +1781,7 @@ var RoomClient = function () {
 			};
 
 			_axios2.default.get('http://127.0.0.1:5000/begin').then(function (res) {
-				console.log('Server is ready, start sending data...');
+				logger.debug('Server is ready, start sending data...');
 
 				_this24._recordState = 'recording';
 				_this24._videoRecorder.start(interval);
@@ -1796,16 +1796,16 @@ var RoomClient = function () {
 
 				var url = 'http://127.0.0.1:5000/data-' + datatype;
 				_axios2.default.post(url, data).then(function (res) {
-					console.log(datatype + '-data blob sent.');
+					logger.debug(datatype + '-data blob sent.');
 				}).catch(function (err) {
-					console.log('error:' + err);
+					logger.debug('error:' + err);
 				});
 			}
 		}
 	}, {
 		key: 'stopRecord',
 		value: function stopRecord() {
-			console.log('Deactivating recorder...');
+			logger.debug('Deactivating recorder...');
 			this._recordState = 'inactive';
 			this._audioRecorder.stop();
 			this._videoRecorder.stop();
@@ -1818,7 +1818,7 @@ var RoomClient = function () {
 			this._videoRecorder = null;
 			this._audioRecorder = null;
 			_axios2.default.get('http://127.0.0.1:5000/end').then(function (res) {
-				console.log('Data transfer complete');
+				logger.debug('Data transfer complete');
 				return 5;
 			});
 		}

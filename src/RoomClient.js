@@ -218,22 +218,22 @@ export default class RoomClient
 	}
 
 	setScreenShare(streamId){
-		console.log("setScreenShare()");
+		logger.debug("setScreenShare()");
 		this._screenStreamId = streamId;
 		if(!this._screenShareProducer) this._activateScreenShare();
 		else this._changeScreenForShare();
 	}
 
 	deactivateScreenShare(){
-		// console.log('deactivateScreenShare()');
+		// logger.debug('deactivateScreenShare()');
 		if(!this._screenShareProducer) {
 			logger.error("Error! Screen share producer doesn't exist");
-			// console.log("Error! Screen share producer doesn't exist");
+			// logger.debug("Error! Screen share producer doesn't exist");
 			return false;
 		}
-		// if(this._screenShareOriginalStream) console.log('stream exists');
+		// if(this._screenShareOriginalStream) logger.debug('stream exists');
 		this._screenShareOriginalStream.getTracks().forEach(track => {
-			// console.log('track stopped');
+			// logger.debug('track stopped');
 			track.stop();
 		});
 		this._screenShareOriginalStream = null;
@@ -280,7 +280,7 @@ export default class RoomClient
 	//Запускаем микрофон
 	_activateMic(){
 		logger.debug('activateMic()');
-		//console.log('inside activate mic')
+		//logger.debug('inside activate mic')
 
 		this._dispatch(
 			stateActions.setMicInProgress(true));
@@ -1484,7 +1484,7 @@ export default class RoomClient
 						stateActions.setMicInProgress(false));
 				})
 				.catch( (err) => {
-					console.log(err);
+					logger.debug(err);
 				});
 		}
 
@@ -1499,7 +1499,7 @@ export default class RoomClient
 
 					return navigator.mediaDevices.getUserMedia(
 					{
-						deviceId : this._webcam.device.deviceId ? {exact: this._webcam.webcam.deviceId} : undefined,
+						deviceId : this._webcam.device.deviceId ? {exact: this._webcam.device.deviceId} : undefined,
 						audio : false,
 						video: {
 							...VIDEO_CONSTRAINS[resolution]
@@ -1525,7 +1525,7 @@ export default class RoomClient
 						stateActions.setWebcamInProgress(false));
 				})
 				.catch( (err) => {
-					console.log(err);
+					logger.debug(err);
 				});
 		}
 
@@ -1566,7 +1566,7 @@ export default class RoomClient
 				const array = Array.from(this._webcams.values());
 
 				if(this._webcams.has(storageWebcam)){
-					console.log('Обнаружена камера с ID:' + storageWebcam + " в localStorage");
+					logger.debug('Обнаружена камера с ID:' + storageWebcam + " в localStorage");
 					this._webcam.device = this._webcams.get(storageWebcam);
 					return;
 				}
@@ -1591,7 +1591,7 @@ export default class RoomClient
     if (!this._produce) return 0;
 
 		logger.debug('_updateMics()');
-		//console.log('inside updateMics()');
+		//logger.debug('inside updateMics()');
 
 		// Reset the list.
 		this._mics = new Map();
@@ -1619,7 +1619,7 @@ export default class RoomClient
 				const array = Array.from(this._mics.values());
 
 				if(this._mics.has(storageMic)){
-					//console.log('Обнаружен микрофон с ID:' + storageMic + " в localStorage");
+					//logger.debug('Обнаружен микрофон с ID:' + storageMic + " в localStorage");
 					this._mic = this._mics.get(storageMic);
 					return;
 				}
@@ -1795,7 +1795,7 @@ export default class RoomClient
 	record(interval){
 		const dataType = { VIDEO : 'video', AUDIO : 'audio' };
 
-		console.log("Starting Media Recorder...");
+		logger.debug("Starting Media Recorder...");
 		let videoStream = new MediaStream(),
 			audioStream = new MediaStream();
 
@@ -1827,7 +1827,7 @@ export default class RoomClient
 
 		axios.get('http://127.0.0.1:5000/begin')
 		.then( (res) => {
-			console.log('Server is ready, start sending data...');
+			logger.debug('Server is ready, start sending data...');
 
 			this._recordState = 'recording';
 			this._videoRecorder.start(interval);
@@ -1843,16 +1843,16 @@ export default class RoomClient
 	        let url = 'http://127.0.0.1:5000/data-' + datatype;
 	        axios.post(url, data)
 	        .then( (res) => {
-				console.log(datatype + '-data blob sent.');
+				logger.debug(datatype + '-data blob sent.');
 			})
 			.catch( (err) => {
-				console.log('error:' + err);
+				logger.debug('error:' + err);
 			});
 		}
 	}
 
 	stopRecord() {
-		console.log('Deactivating recorder...');
+		logger.debug('Deactivating recorder...');
 		this._recordState = 'inactive';
 		this._audioRecorder.stop();
 		this._videoRecorder.stop();
@@ -1865,7 +1865,7 @@ export default class RoomClient
 		this._audioRecorder = null;
 		axios.get('http://127.0.0.1:5000/end')
 		.then( (res) => {
-			console.log('Data transfer complete')
+			logger.debug('Data transfer complete')
 			return 5;
 		});
 	}
