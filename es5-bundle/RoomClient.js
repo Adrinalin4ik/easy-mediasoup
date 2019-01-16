@@ -1444,10 +1444,12 @@ var RoomClient = function () {
 				return _promise2.default.resolve().then(function () {
 					_this19._dispatch(stateActions.setWebcamInProgress(true));
 				}).then(function () {
-					_this19._webcam.device = device;
+					var _webcam5 = _this19._webcam,
+					    device = _webcam5.device,
+					    resolution = _webcam5.resolution;
 
 					return navigator.mediaDevices.getUserMedia({
-						deviceId: _this19._webcam.device.deviceId ? { exact: _this19._webcam.device.deviceId } : undefined,
+						deviceId: device.deviceId ? { exact: device.deviceId } : undefined,
 						audio: false,
 						video: (0, _extends3.default)({}, VIDEO_CONSTRAINS[resolution])
 					});
@@ -1597,7 +1599,9 @@ var RoomClient = function () {
 				// this._dispatch(
 				// 	stateActions.setCanChangeWebcam(this._mics.size > 1)
 				// );
-			});
+			}).catch(function (error) {
+				logger.error('unexpected error while _updateMics:%o', error);
+			});;
 		}
 	}, {
 		key: '_getWebcamType',

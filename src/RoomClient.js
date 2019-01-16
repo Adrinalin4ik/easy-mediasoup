@@ -1495,11 +1495,10 @@ export default class RoomClient
 						stateActions.setWebcamInProgress(true));
 				})
 				.then( () => {
-					this._webcam.device = device;
-
+					const { device, resolution } = this._webcam;
 					return navigator.mediaDevices.getUserMedia(
 					{
-						deviceId : this._webcam.device.deviceId ? {exact: this._webcam.device.deviceId} : undefined,
+						deviceId : device.deviceId ? {exact: device.deviceId} : undefined,
 						audio : false,
 						video: {
 							...VIDEO_CONSTRAINS[resolution]
@@ -1638,7 +1637,12 @@ export default class RoomClient
 				// this._dispatch(
 				// 	stateActions.setCanChangeWebcam(this._mics.size > 1)
 				// );
-			});
+			})
+			.catch((error) =>
+			{
+				logger.error(
+					'unexpected error while _updateMics:%o', error);
+			});;
 	}
 
 	_getWebcamType(device)
