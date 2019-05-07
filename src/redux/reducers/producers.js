@@ -4,6 +4,16 @@ const producers = (state = initialState, action) =>
 {
 	switch (action.type)
 	{
+		case 'SET_ROOM_STATE':
+		{
+			const roomState = action.payload.state;
+
+			if (roomState === 'closed')
+				return {};
+			else
+				return state;
+		}
+
 		case 'ADD_PRODUCER':
 		{
 			const { producer } = action.payload;
@@ -15,38 +25,26 @@ const producers = (state = initialState, action) =>
 		{
 			const { producerId } = action.payload;
 			const newState = { ...state };
-			
-			delete newState[producerId];
 			global.emitter.emit("REMOVE_PRODUCER", producer)
+			delete newState[producerId];
+
 			return newState;
 		}
 
 		case 'SET_PRODUCER_PAUSED':
 		{
-			const { producerId, originator } = action.payload;
+			const { producerId } = action.payload;
 			const producer = state[producerId];
-			let newProducer;
-
-			if (originator === 'local')
-				newProducer = { ...producer, locallyPaused: true };
-			else
-				newProducer = { ...producer, remotelyPaused: true };
-
+			const newProducer = { ...producer, paused: true };
 			global.emitter.emit("SET_PRODUCER_PAUSED", newProducer)
 			return { ...state, [producerId]: newProducer };
 		}
 
 		case 'SET_PRODUCER_RESUMED':
 		{
-			const { producerId, originator } = action.payload;
+			const { producerId } = action.payload;
 			const producer = state[producerId];
-			let newProducer;
-
-			if (originator === 'local')
-				newProducer = { ...producer, locallyPaused: false };
-			else
-				newProducer = { ...producer, remotelyPaused: false };
-
+			const newProducer = { ...producer, paused: false };
 			global.emitter.emit("SET_PRODUCER_RESUMED", newProducer)
 			return { ...state, [producerId]: newProducer };
 		}
@@ -56,14 +54,27 @@ const producers = (state = initialState, action) =>
 			const { producerId, track } = action.payload;
 			const producer = state[producerId];
 			const newProducer = { ...producer, track };
-
 			global.emitter.emit("SET_PRODUCER_TRACK", newProducer)
-			
+			return { ...state, [producerId]: newProducer };
+		}
+
+		case 'SET_PRODUCER_SCORE':
+		{
+			const { producerId, score } = action.payload;
+			const producer = state[producerId];
+
+			if (!producer)
+				return state;
+
+			const newProducer = { ...producer, score };
+
 			return { ...state, [producerId]: newProducer };
 		}
 
 		default:
+		{
 			return state;
+		}
 	}
 };
 

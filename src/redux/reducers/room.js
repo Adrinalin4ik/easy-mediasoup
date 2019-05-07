@@ -1,8 +1,10 @@
 const initialState =
 {
-	url               : null,
-	state             : 'new', // new/connecting/connected/disconnected/closed,
-	activeSpeakerName : null
+	url             : null,
+	state           : 'new', // new/connecting/connected/disconnected/closed,
+	activeSpeakerId : null,
+	statsPeerId     : null,
+	faceDetection   : false
 };
 
 const room = (state = initialState, action) =>
@@ -20,17 +22,48 @@ const room = (state = initialState, action) =>
 		{
 			const roomState = action.payload.state;
 			global.emitter.emit("SET_ROOM_STATE", roomState)
-			if (roomState == 'connected')
+			if (roomState === 'connected')
 				return { ...state, state: roomState };
 			else
-				return { ...state, state: roomState, activeSpeakerName: null };
+				return { ...state, state: roomState, activeSpeakerId: null, statsPeerId: null };
 		}
 
 		case 'SET_ROOM_ACTIVE_SPEAKER':
 		{
-			const { peerName } = action.payload;
-			global.emitter.emit("SET_ROOM_ACTIVE_SPEAKER", peerName)
-			return { ...state, activeSpeakerName: peerName };
+			const { peerId } = action.payload;
+			global.emitter.emit("SET_ROOM_ACTIVE_SPEAKER", peerId)
+			return { ...state, activeSpeakerId: peerId };
+		}
+
+		case 'SET_ROOM_STATS_PEER_ID':
+		{
+			const { peerId } = action.payload;
+
+			if (state.statsPeerId === peerId)
+				return { ...state, statsPeerId: null };
+
+			return { ...state, statsPeerId: peerId };
+		}
+
+		case 'SET_FACE_DETECTION':
+		{
+			const flag = action.payload;
+
+			return { ...state, faceDetection: flag };
+		}
+
+		case 'REMOVE_PEER':
+		{
+			const { peerId } = action.payload;
+			const newState = { ...state };
+
+			if (peerId && peerId === state.activeSpeakerId)
+				newState.activeSpeakerId = null;
+
+			if (peerId && peerId === state.statsPeerId)
+				newState.statsPeerId = null;
+
+			return newState;
 		}
 
 		default:
