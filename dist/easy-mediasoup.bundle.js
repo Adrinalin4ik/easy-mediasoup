@@ -922,6 +922,12 @@ var RoomClient = function () {
 						_this13._dispatch(stateActions.setRoomActiveSpeaker(peerName));
 
 						break;
+					case 'message':
+						{
+							global.emitter.emit("message", notification.data);
+
+							break;
+						}
 					default:
 						global.emitter.emit('notification', notification);
 						break;
@@ -1966,7 +1972,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.2.3');
+	console.warn('Easy mediasoup v1.2.4');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -27508,29 +27514,35 @@ module.exports = require('../package.json').version;
 
 },{"../package.json":219}],219:[function(require,module,exports){
 module.exports={
-  "_from": "websocket@^1.0.28",
+  "_args": [
+    [
+      "websocket@1.0.28",
+      "/home/alexey/Desktop/Projects/JS/easy-mediasoup"
+    ]
+  ],
+  "_from": "websocket@1.0.28",
   "_id": "websocket@1.0.28",
   "_inBundle": false,
   "_integrity": "sha512-00y/20/80P7H4bCYkzuuvvfDvh+dgtXi5kzDf3UcZwN6boTYaKvsrtZ5lIYm1Gsg48siMErd9M4zjSYfYFHTrA==",
   "_location": "/protoo-client/websocket",
+  "_optional": true,
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "websocket@^1.0.28",
+    "raw": "websocket@1.0.28",
     "name": "websocket",
     "escapedName": "websocket",
-    "rawSpec": "^1.0.28",
+    "rawSpec": "1.0.28",
     "saveSpec": null,
-    "fetchSpec": "^1.0.28"
+    "fetchSpec": "1.0.28"
   },
   "_requiredBy": [
     "/protoo-client"
   ],
   "_resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.28.tgz",
-  "_shasum": "9e5f6fdc8a3fe01d4422647ef93abdd8d45a78d3",
-  "_spec": "websocket@^1.0.28",
-  "_where": "/home/alexey/Desktop/Projects/JS/easy-mediasoup/node_modules/protoo-client",
+  "_spec": "1.0.28",
+  "_where": "/home/alexey/Desktop/Projects/JS/easy-mediasoup",
   "author": {
     "name": "Brian McKelvey",
     "email": "theturtle32@gmail.com",
@@ -27540,7 +27552,6 @@ module.exports={
   "bugs": {
     "url": "https://github.com/theturtle32/WebSocket-Node/issues"
   },
-  "bundleDependencies": false,
   "config": {
     "verbose": false
   },
@@ -27557,7 +27568,6 @@ module.exports={
     "typedarray-to-buffer": "^3.1.5",
     "yaeti": "^0.0.6"
   },
-  "deprecated": false,
   "description": "Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.",
   "devDependencies": {
     "buffer-equal": "^1.0.0",

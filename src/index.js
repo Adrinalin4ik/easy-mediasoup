@@ -24,7 +24,7 @@ import * as emitter from  "wildemitter"
 
 export class Init{
 	constructor(config){
-		console.warn('Easy mediasoup v1.2.3')
+		console.warn('Easy mediasoup v1.2.4')
 		global.emitter = this.emitter = new emitter.default()
 		this.roomClientMiddleware = roomClientMiddleware
 		const logger = new Logger();

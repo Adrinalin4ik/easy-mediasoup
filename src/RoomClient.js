@@ -800,6 +800,12 @@ export default class RoomClient
 						stateActions.setRoomActiveSpeaker(peerName));
 
 					break;
+				case 'message':
+					{
+							global.emitter.emit("message", notification.data)
+
+						break;
+					}
 				default: 
 					global.emitter.emit('notification', notification)
 					break;

@@ -1,6 +1,6 @@
 {
   "name": "easy-mediasoup",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Mediasoup overhead",
   "main": "./dist/easy-mediasoup.bundle.js",
   "scripts": {

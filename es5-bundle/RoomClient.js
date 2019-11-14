@@ -850,6 +850,12 @@ var RoomClient = function () {
 						_this13._dispatch(stateActions.setRoomActiveSpeaker(peerName));
 
 						break;
+					case 'message':
+						{
+							global.emitter.emit("message", notification.data);
+
+							break;
+						}
 					default:
 						global.emitter.emit('notification', notification);
 						break;
