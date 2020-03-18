@@ -1372,7 +1372,7 @@ export default class RoomClient
 					const track = stream.getVideoTracks()[0];
 
 					producer = this._room.createProducer(
-						track, { simulcast: this._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
+						track, { simulcast: false }, { source: 'screen' });
 					// track.stop();	
 
 					return producer.send(this._sendTransport);

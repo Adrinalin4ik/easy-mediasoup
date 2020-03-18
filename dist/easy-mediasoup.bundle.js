@@ -1421,7 +1421,7 @@ var RoomClient = function () {
 
 				var track = stream.getVideoTracks()[0];
 
-				producer = _this18._room.createProducer(track, { simulcast: _this18._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
+				producer = _this18._room.createProducer(track, { simulcast: false }, { source: 'screen' });
 				// track.stop();	
 
 				return producer.send(_this18._sendTransport);
@@ -1972,7 +1972,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.2.5');
+	console.warn('Easy mediasoup v1.2.6');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();

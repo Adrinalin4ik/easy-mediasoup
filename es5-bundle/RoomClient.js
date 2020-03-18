@@ -1349,7 +1349,7 @@ var RoomClient = function () {
 
 				var track = stream.getVideoTracks()[0];
 
-				producer = _this18._room.createProducer(track, { simulcast: _this18._useSimulcast ? SIMULCAST_OPTIONS : false }, { source: 'screen' });
+				producer = _this18._room.createProducer(track, { simulcast: false }, { source: 'screen' });
 				// track.stop();	
 
 				return producer.send(_this18._sendTransport);
