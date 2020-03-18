@@ -192,7 +192,7 @@ var RoomClient = function () {
 		this._is_audio_enabled = !this.initially_muted;
 		this._is_screenshare_enabled = true;
 		this._screenStreamId = null;
-
+		ROOM_OPTIONS.tcp = args.use_tcp;
 		// Closed flag.
 		this._closed = false;
 
@@ -1972,7 +1972,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.2.4');
+	console.warn('Easy mediasoup v1.2.5');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -2014,6 +2014,7 @@ var Init = exports.Init = function Init(config) {
 	args.produce = config.produce;
 	args.skip_consumer = config.skip_consumer;
 	args.user_uuid = config.user_uuid;
+	args.use_tcp = config.use_tcp || true;
 
 	var displayNameSet = void 0;
 
@@ -2034,11 +2035,15 @@ var Init = exports.Init = function Init(config) {
 		device.version = undefined;
 	}
 
-	// NOTE: I don't like this.
-	store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
+	this.join = function () {
+		// NOTE: I don't like this.
+		store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
 
-	// NOTE: I don't like this.
-	store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers, args: args }));
+		// NOTE: I don't like this.
+		store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers, args: args }));
+	};
+
+	this.join();
 };
 // import * as cookiesManager from './cookiesManager';
 
@@ -27851,6 +27856,7 @@ function bindActionCreators(actionCreators, dispatch) {
   return boundActionCreators;
 }
 },{}],226:[function(require,module,exports){
+(function (process){
 'use strict';
 
 exports.__esModule = true;
@@ -27938,7 +27944,7 @@ function combineReducers(reducers) {
   for (var i = 0; i < reducerKeys.length; i++) {
     var key = reducerKeys[i];
 
-    if ("production" !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       if (typeof reducers[key] === 'undefined') {
         (0, _warning2['default'])('No reducer provided for key "' + key + '"');
       }
@@ -27951,7 +27957,7 @@ function combineReducers(reducers) {
   var finalReducerKeys = Object.keys(finalReducers);
 
   var unexpectedKeyCache = void 0;
-  if ("production" !== 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     unexpectedKeyCache = {};
   }
 
@@ -27970,7 +27976,7 @@ function combineReducers(reducers) {
       throw shapeAssertionError;
     }
 
-    if ("production" !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       var warningMessage = getUnexpectedStateShapeWarningMessage(state, finalReducers, action, unexpectedKeyCache);
       if (warningMessage) {
         (0, _warning2['default'])(warningMessage);
@@ -27994,7 +28000,8 @@ function combineReducers(reducers) {
     return hasChanged ? nextState : state;
   };
 }
-},{"./createStore":228,"./utils/warning":230,"lodash/isPlainObject":164}],227:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./createStore":228,"./utils/warning":230,"_process":203,"lodash/isPlainObject":164}],227:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -28294,6 +28301,7 @@ var ActionTypes = exports.ActionTypes = {
   }, _ref2[_symbolObservable2['default']] = observable, _ref2;
 }
 },{"lodash/isPlainObject":164,"symbol-observable":235}],229:[function(require,module,exports){
+(function (process){
 'use strict';
 
 exports.__esModule = true;
@@ -28331,7 +28339,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 */
 function isCrushed() {}
 
-if ("production" !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
+if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
   (0, _warning2['default'])('You are currently using minified code outside of NODE_ENV === \'production\'. ' + 'This means that you are running a slower development build of Redux. ' + 'You can use loose-envify (https://github.com/zertosh/loose-envify) for browserify ' + 'or DefinePlugin for webpack (http://stackoverflow.com/questions/30030031) ' + 'to ensure you have the correct code for your production build.');
 }
 
@@ -28340,7 +28348,8 @@ exports.combineReducers = _combineReducers2['default'];
 exports.bindActionCreators = _bindActionCreators2['default'];
 exports.applyMiddleware = _applyMiddleware2['default'];
 exports.compose = _compose2['default'];
-},{"./applyMiddleware":224,"./bindActionCreators":225,"./combineReducers":226,"./compose":227,"./createStore":228,"./utils/warning":230}],230:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"./applyMiddleware":224,"./bindActionCreators":225,"./combineReducers":226,"./compose":227,"./createStore":228,"./utils/warning":230,"_process":203}],230:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;

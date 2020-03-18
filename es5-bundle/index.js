@@ -58,7 +58,7 @@ var Init = exports.Init = function Init(config) {
 
 	(0, _classCallCheck3.default)(this, Init);
 
-	console.warn('Easy mediasoup v1.2.4');
+	console.warn('Easy mediasoup v1.2.5');
 	global.emitter = this.emitter = new emitter.default();
 	this.roomClientMiddleware = _roomClientMiddleware2.default;
 	var logger = new _Logger2.default();
@@ -100,6 +100,7 @@ var Init = exports.Init = function Init(config) {
 	args.produce = config.produce;
 	args.skip_consumer = config.skip_consumer;
 	args.user_uuid = config.user_uuid;
+	args.use_tcp = config.use_tcp || true;
 
 	var displayNameSet = void 0;
 
@@ -120,11 +121,15 @@ var Init = exports.Init = function Init(config) {
 		device.version = undefined;
 	}
 
-	// NOTE: I don't like this.
-	store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
+	this.join = function () {
+		// NOTE: I don't like this.
+		store.dispatch(stateActions.setMe({ peerName: peerName, displayName: displayName, displayNameSet: displayNameSet, device: device }));
 
-	// NOTE: I don't like this.
-	store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers, args: args }));
+		// NOTE: I don't like this.
+		store.dispatch(requestActions.joinRoom({ media_server_wss: media_server_wss, roomId: roomId, peerName: peerName, displayName: displayName, device: device, useSimulcast: useSimulcast, produce: produce, turnservers: turnservers, args: args }));
+	};
+
+	this.join();
 };
 // import * as cookiesManager from './cookiesManager';
 

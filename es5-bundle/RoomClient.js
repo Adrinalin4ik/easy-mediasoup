@@ -120,7 +120,7 @@ var RoomClient = function () {
 		this._is_audio_enabled = !this.initially_muted;
 		this._is_screenshare_enabled = true;
 		this._screenStreamId = null;
-
+		ROOM_OPTIONS.tcp = args.use_tcp;
 		// Closed flag.
 		this._closed = false;
 

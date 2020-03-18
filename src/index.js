@@ -24,7 +24,7 @@ import * as emitter from  "wildemitter"
 
 export class Init{
 	constructor(config){
-		console.warn('Easy mediasoup v1.2.4')
+		console.warn('Easy mediasoup v1.2.5')
 		global.emitter = this.emitter = new emitter.default()
 		this.roomClientMiddleware = roomClientMiddleware
 		const logger = new Logger();
@@ -79,6 +79,7 @@ export class Init{
     args.produce = config.produce
     args.skip_consumer = config.skip_consumer
 		args.user_uuid = config.user_uuid
+		args.use_tcp = config.use_tcp || true
 
 
 		let displayNameSet;
@@ -104,16 +105,17 @@ export class Init{
 			device.version = undefined;
 		}
 
+		this.join = () => {
+				// NOTE: I don't like this.
+			store.dispatch(
+				stateActions.setMe({ peerName, displayName, displayNameSet, device }));
 
-		// NOTE: I don't like this.
-		store.dispatch(
-			stateActions.setMe({ peerName, displayName, displayNameSet, device }));
+			// NOTE: I don't like this.
+			store.dispatch(
+				requestActions.joinRoom(
+					{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers, args }));
+		}
 
-		// NOTE: I don't like this.
-		store.dispatch(
-			requestActions.joinRoom(
-				{ media_server_wss, roomId, peerName, displayName, device, useSimulcast, produce, turnservers, args }));
-
+		this.join();
 	}
-
 }
