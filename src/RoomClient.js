@@ -7,7 +7,7 @@ import * as requestActions from './redux/requestActions';
 import * as stateActions from './redux/stateActions';
 import axios from 'axios';
 import MediaStreamRecorder from 'msr';
-
+console.log('test')
 const logger = new Logger('RoomClient');
 
 const ROOM_OPTIONS =
