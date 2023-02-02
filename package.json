@@ -70,7 +70,7 @@
     "tape": "^4.9.1",
     "travis-multirunner": "^3.0.0",
     "uglify-js": "^2.7.3",
-    "webpack-cli": "^2.1.5"
+    "webpack-cli": "^5.0.1"
   },
   "files": [
     "dist"
