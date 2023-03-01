@@ -64,7 +64,7 @@
     "browserify": "^13.1.0",
     "chai": "^3.5.0",
     "http-server": "^0.2.2",
-    "mocha": "^5.2.0",
+    "mocha": "^10.2.0",
     "request": "^2.87.0",
     "selenium-webdriver": "^3.0.1",
     "tape": "^4.9.1",
